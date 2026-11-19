@@ -37,7 +37,9 @@ def compile_custom_apk(website_url, app_name, design_id, output_path, package_na
 
     # 1. Template selection
     d_clean = (design_id or "").upper().strip()
-    if "CYBER" in d_clean or d_clean == "4" or d_clean == "46":
+    if "MAGIC" in d_clean or "KEY" in d_clean or d_clean == "5" or d_clean == "35":
+        template_file = "template_5_MAGICAL_KEY.html"
+    elif "CYBER" in d_clean or d_clean == "4" or d_clean == "46":
         template_file = "template_4_CYBER_PANEL.html"
     elif "TRANSFORMER" in d_clean or d_clean == "0":
         template_file = "template_0_TRANSFORMER_V1.html"
@@ -55,7 +57,9 @@ def compile_custom_apk(website_url, app_name, design_id, output_path, package_na
         html = f.read()
 
     # 2. Local Assets (Base64)
-    if "CYBER" in d_clean:
+    if "MAGIC" in d_clean or "KEY" in d_clean:
+        logo_path = "public/assets/images/magical_key_icon.png"
+    elif "CYBER" in d_clean:
         logo_path = "public/assets/images/cyber_panel_icon.png"
     elif "VISION" in d_clean or "GLAXY" in d_clean:
         logo_path = "public/assets/images/035f56_6aed94c205584_logo.jpg"

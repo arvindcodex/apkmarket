@@ -28,7 +28,7 @@ While the compiler supports macOS and Linux natively, this pipeline is **enginee
 
 ### Core Capabilities:
 - 🚀 **Zero-Gradle Headless APK Compilation**: Uses native command-line build tools (`aapt2`, `javac`, `d8`, `zipalign`, `apksigner`) to produce signed, production-ready APKs in **under 3 seconds**.
-- 🎮 **5 Cyberpunk & Gaming Floating HUDs**: Fully animated floating mini FAB icons that expand into interactive control panels on top of any target web application.
+- 🎮 **6 Cyberpunk & Gaming Floating HUDs**: Fully animated floating mini FAB icons that expand into interactive control panels on top of any target web application.
 - 🔄 **Real-Time Data Bridge**: Scrapes and synchronizes target URL balance, session parameters, and period states, with optional Firebase Realtime Database integration.
 - 🌐 **Legacy PHP API Routing**: Built-in Next.js App Router endpoints matching legacy PHP paths (`/order.php`, `/checkout.php`, `/login.php`, `/register.php`, `/verify_image.php`, `/ai_chat_api.php`, `/bot_order.php`).
 - 🛡️ **Autonomous Keystore & Signing**: Automatically creates 2048-bit RSA keystores, applies custom `dname` metadata, zipaligns to 4-byte boundaries, and cryptographically signs with v1/v2/v3 Android signatures.
