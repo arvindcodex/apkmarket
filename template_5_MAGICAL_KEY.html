@@ -78,7 +78,7 @@ body {
 
 /* ── Floating Mini FAB ── */
 #mini {
-  display: flex;
+  display: none;
   position: absolute;
   left: 20px; top: 100px;
   width: 52px; height: 52px;
@@ -135,7 +135,7 @@ body {
 
 /* ── Pure Code Stage HUD (100% Native Vector & CSS) ── */
 #stage {
-  display: none;
+  display: flex;
   position: absolute;
   left: calc(50% - 128px);
   top: calc(50% - 175px);
@@ -598,7 +598,7 @@ body {
 <div id="mini" role="button" aria-label="Open {name}">
   <div id="fab-core">
     <div id="fab-icon">
-      <img id="fab-img" src="logo.png" alt="logo">
+      <img id="fab-img" src="{logo}" alt="logo">
     </div>
     <div id="fab-dot"></div>
   </div>
@@ -644,7 +644,7 @@ body {
   </div>
 
   <!-- VIEW 3: MAIN HUD -->
-  <div class="panel-view" id="view-main">
+  <div class="panel-view active" id="view-main">
 
     <!-- Upper Section: Large Central Holographic Radar & 3D Ball -->
     <div class="mk-radar-container">
@@ -761,7 +761,7 @@ body {
 <script>
 "use strict";
 
-var opened = false;
+var opened = true;
 var userRegistered = true;
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1149,7 +1149,9 @@ if (coinBall) {
 }
 
 // Bootstrap
+window.addEventListener("DOMContentLoaded", function(){ openCard(); });
 window.onload = function(){
+  openCard();
   isOnWingoPage = true;
   userRegistered = true;
   goState('wingo');
